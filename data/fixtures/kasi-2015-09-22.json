@@ -1,0 +1,7 @@
+{
+  "name": "KASI sample day pillar fixture",
+  "solarDate": "2015-09-22",
+  "julianDay": 2457288,
+  "expectedDayGanji": "신축",
+  "formula": "dayGanjiIndex = mod(julianDay + 49, 60)"
+}
