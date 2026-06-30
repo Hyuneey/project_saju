@@ -11,6 +11,21 @@ import type {
   SolarTermProvider
 } from "./types";
 
+const CHRONOLOGICAL_TERM_KEYS = [
+  "sohan",
+  "lichun",
+  "gyeongchip",
+  "cheongmyeong",
+  "ipha",
+  "mangjong",
+  "soseo",
+  "ipchu",
+  "baengno",
+  "hanro",
+  "ipdong",
+  "daeseol"
+] as const;
+
 export class TableCalendarDataProvider implements CalendarDataProvider {
   readonly dataVersion = "calendar-jdn-gregorian-0.1.0";
 
@@ -46,11 +61,14 @@ export class TableCalendarDataProvider implements CalendarDataProvider {
 export class TableSolarTermProvider implements SolarTermProvider {
   readonly dataVersion: string;
   private readonly table: Record<string, SolarTerm[]>;
+  private readonly supportedGregorianYears?: SolarTermDataset["supportedGregorianYears"];
 
   constructor(source: Record<string, SolarTerm[]> | SolarTermDataset = SOLAR_TERM_DATASET, dataVersion?: string) {
     if (isSolarTermDataset(source)) {
+      assertCertifiedSolarTermDataset(source);
       this.table = solarTermDatasetToTable(source);
       this.dataVersion = source.dataVersion;
+      this.supportedGregorianYears = source.supportedGregorianYears;
       return;
     }
 
@@ -59,6 +77,18 @@ export class TableSolarTermProvider implements SolarTermProvider {
   }
 
   getTermsForGregorianYear(year: number): SolarTerm[] {
+    if (this.supportedGregorianYears && year > this.supportedGregorianYears.to) {
+      throw new ManseError(
+        "SOLAR_TERM_DATA_MISSING",
+        `Solar-term data is outside the certified range for Gregorian year ${year}.`,
+        {
+          year,
+          dataVersion: this.dataVersion,
+          supportedGregorianYears: this.supportedGregorianYears
+        }
+      );
+    }
+
     const terms = this.table[String(year)];
     if (!terms) {
       throw new ManseError(
@@ -86,6 +116,66 @@ export class TableSolarTermProvider implements SolarTermProvider {
 
 export const defaultCalendarDataProvider = new TableCalendarDataProvider();
 export const defaultSolarTermProvider = new TableSolarTermProvider();
+
+export function assertCertifiedSolarTermDataset(dataset: SolarTermDataset): void {
+  const errors: string[] = [];
+  const { from, to } = dataset.supportedGregorianYears;
+
+  if (from > to) {
+    errors.push("supportedGregorianYears.from must be less than or equal to supportedGregorianYears.to");
+  }
+
+  const recordsByYear = new Map<number, SolarTerm[]>();
+  const seen = new Set<string>();
+
+  for (const record of dataset.terms) {
+    const key = `${record.gregorianYear}:${record.name}`;
+    if (seen.has(key)) {
+      errors.push(`duplicate solar term ${key}`);
+    }
+    seen.add(key);
+  }
+
+  const table = solarTermDatasetToTable(dataset);
+  for (const [year, terms] of Object.entries(table)) {
+    recordsByYear.set(Number(year), terms);
+  }
+
+  for (let year = from; year <= to; year += 1) {
+    const terms = recordsByYear.get(year) ?? [];
+    for (const boundary of MONTH_BOUNDARIES) {
+      if (!terms.some((term) => term.key === boundary.key)) {
+        errors.push(`certified year ${year} is missing ${boundary.key}`);
+      }
+    }
+
+    if (terms.length !== CHRONOLOGICAL_TERM_KEYS.length) {
+      errors.push(`certified year ${year} must contain exactly ${CHRONOLOGICAL_TERM_KEYS.length} major solar terms`);
+    }
+
+    const chronologicalKeys = [...terms]
+      .sort((a, b) => a.dateTime.localeCompare(b.dateTime))
+      .map((term) => term.key);
+    if (chronologicalKeys.join(",") !== CHRONOLOGICAL_TERM_KEYS.join(",")) {
+      errors.push(`certified year ${year} has out-of-order solar-term datetimes`);
+    }
+  }
+
+  const carryover = recordsByYear.get(from - 1) ?? [];
+  if (!carryover.some((term) => term.key === "daeseol")) {
+    errors.push(`carryover year ${from - 1} is missing daeseol`);
+  }
+  if (carryover.length !== 1) {
+    errors.push(`carryover year ${from - 1} must contain only daeseol`);
+  }
+
+  if (errors.length > 0) {
+    throw new ManseError("SOLAR_TERM_DATA_INVALID", "Solar-term dataset failed certification checks.", {
+      dataVersion: dataset.dataVersion,
+      errors
+    });
+  }
+}
 
 export function solarTermDatasetToTable(dataset: SolarTermDataset): Record<string, SolarTerm[]> {
   const table: Record<string, SolarTerm[]> = {};

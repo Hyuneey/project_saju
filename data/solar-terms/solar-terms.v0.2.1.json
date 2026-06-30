@@ -1,8 +1,4 @@
-import type { SolarTermDataset } from "./types";
-
-// Generated from data/solar-terms/solar-terms.v0.2.1.json.
-// Run `corepack pnpm build:solar-terms` after changing the canonical dataset.
-export const SOLAR_TERM_DATASET = {
+{
   "dataVersion": "solar-terms-v0.2.1",
   "certificationLevel": "imported-unverified",
   "source": {
@@ -1325,7 +1321,4 @@ export const SOLAR_TERM_DATASET = {
       "source": "Daxue Date and Time UTC table"
     }
   ]
-} as const satisfies SolarTermDataset;
-
-export const SOLAR_TERM_DATA_VERSION = SOLAR_TERM_DATASET.dataVersion;
-export const SOLAR_TERM_SOURCE = SOLAR_TERM_DATASET.source.notes ?? SOLAR_TERM_DATASET.source.name;
+}

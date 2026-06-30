@@ -5,6 +5,7 @@ export type Gender = "male" | "female" | "unknown";
 export type DayBoundaryPolicy = "midnight" | "early_zi" | "split_zi";
 export type SolarTimePolicy = "civil_time" | "mean_solar_time" | "true_solar_time";
 export type SolarTermName = SolarTermKey;
+export type SolarTermCertificationLevel = "seed" | "imported-unverified" | "cross-checked" | "production-certified";
 
 export interface PlainDateLike {
   year: number;
@@ -110,18 +111,19 @@ export interface SolarTerm {
 
 export interface SolarTermDataset {
   dataVersion: string;
+  certificationLevel: SolarTermCertificationLevel;
   source: {
     name: string;
     url?: string;
     retrievedAt?: string;
+    license?: string;
     notes?: string;
   };
+  generatedAt?: string;
   timezone: "UTC";
   supportedGregorianYears: {
     from: number;
     to: number;
-    completeYears: readonly number[];
-    carryoverYears: readonly number[];
   };
   terms: readonly SolarTermRecord[];
 }

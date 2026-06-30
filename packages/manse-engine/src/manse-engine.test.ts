@@ -8,7 +8,8 @@ import {
   julianDayNumber,
   mod
 } from ".";
-import type { SolarTerm } from "./types";
+import { SOLAR_TERM_DATASET } from "./solarTermsData";
+import type { SolarTerm, SolarTermDataset } from "./types";
 
 describe("ganji cycle", () => {
   it("maps the 60-cycle with positive modulo", () => {
@@ -36,6 +37,18 @@ describe("year pillar", () => {
     expect(before.basis.year.appliedYear).toBe(2014);
     expect(atBoundary.pillars.year.ganji).toBe("을미");
     expect(atBoundary.basis.year.appliedYear).toBe(2015);
+  });
+
+  it("calculates exact lichun boundary inside the expanded certified range", async () => {
+    const before = await calculateSaju(baseInput({ birthDate: "2024-02-04", birthTime: "17:26" }));
+    const atBoundary = await calculateSaju(baseInput({ birthDate: "2024-02-04", birthTime: "17:27" }));
+
+    expect(before.basis.year.appliedYear).toBe(2023);
+    expect(atBoundary.basis.year.appliedYear).toBe(2024);
+    expect(atBoundary.basis.year.lichun).toMatchObject({
+      key: "lichun",
+      at: "2024-02-04T08:27:00Z"
+    });
   });
 });
 
@@ -178,6 +191,16 @@ describe("validation and missing data", () => {
     });
   });
 
+  it("fails loudly outside the certified solar-term range", async () => {
+    await expect(calculateSaju(baseInput({ birthDate: "2027-02-04" }))).rejects.toMatchObject({
+      code: "SOLAR_TERM_DATA_MISSING",
+      detail: {
+        dataVersion: "solar-terms-v0.2.1",
+        supportedGregorianYears: { from: 2015, to: 2026 }
+      }
+    });
+  });
+
   it("rejects invalid or offset timezones", async () => {
     await expect(calculateSaju(baseInput({ timezone: "+09:00" }))).rejects.toMatchObject({
       code: "INVALID_TIMEZONE"
@@ -187,9 +210,9 @@ describe("validation and missing data", () => {
   it("returns engineVersion, policyVersion, dataVersion, normalized date, and applied options", async () => {
     const result = await calculateSaju(baseInput({ birthDate: "2015-09-22" }));
 
-    expect(result.metadata.engineVersion).toBe("0.2.0");
+    expect(result.metadata.engineVersion).toBe("0.2.1");
     expect(result.metadata.policyVersion).toBe("manse-policy-v0.1");
-    expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.0");
+    expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.1");
     expect(result.metadata.appliedOptions).toEqual(baseOptions());
     expect(result.normalizedDateTime.solarDate).toBe("2015-09-22");
   });
@@ -228,7 +251,46 @@ describe("validation and missing data", () => {
       dateTime: "2025-12-06T21:04:00"
     });
   });
+
+  it("rejects certified datasets with missing, duplicated, or out-of-order solar terms", () => {
+    const missing = cloneDataset();
+    missing.terms = missing.terms.filter((term) => !(term.gregorianYear === 2020 && term.name === "hanro"));
+    expectDatasetInvalid(missing, "missing hanro");
+
+    const duplicated = cloneDataset();
+    duplicated.terms = [...duplicated.terms, { ...duplicated.terms.find((term) => term.gregorianYear === 2020)! }];
+    expectDatasetInvalid(duplicated, "duplicate solar term");
+
+    const outOfOrder = cloneDataset();
+    outOfOrder.terms = outOfOrder.terms.map((term) =>
+      term.gregorianYear === 2020 && term.name === "gyeongchip"
+        ? { ...term, at: "2020-04-05T00:00:00Z" }
+        : term
+    );
+    expectDatasetInvalid(outOfOrder, "out-of-order solar-term datetimes");
+  });
 });
+
+function cloneDataset(): SolarTermDataset {
+  return JSON.parse(JSON.stringify(SOLAR_TERM_DATASET)) as SolarTermDataset;
+}
+
+function expectDatasetInvalid(dataset: SolarTermDataset, expectedDetail: string): void {
+  try {
+    new TableSolarTermProvider(dataset);
+  } catch (error) {
+    expect(error).toMatchObject({
+      code: "SOLAR_TERM_DATA_INVALID",
+      detail: {
+        dataVersion: "solar-terms-v0.2.1",
+        errors: expect.arrayContaining([expect.stringContaining(expectedDetail)])
+      }
+    });
+    return;
+  }
+
+  throw new Error("Expected dataset to be invalid.");
+}
 
 function baseOptions(): NonNullable<Parameters<typeof calculateSaju>[0]["options"]> {
   return {

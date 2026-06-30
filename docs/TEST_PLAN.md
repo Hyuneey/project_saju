@@ -9,7 +9,7 @@ corepack pnpm verify
 ## Golden Fixtures
 
 - `data/fixtures/kasi-2015-09-22.json` records the KASI sample date, Julian Day Number `2457288`, and expected day ganji `신축`.
-- `data/solar-terms/solar-terms.v0.2.0.json` is the canonical versioned solar-term dataset used to generate the default engine data module.
+- `data/solar-terms/solar-terms.v0.2.1.json` is the canonical versioned solar-term dataset used to generate the default engine data module.
 
 ## Required Tests
 
@@ -31,6 +31,7 @@ corepack pnpm verify
 - Result includes `engineVersion`, `policyVersion`, `dataVersion`, applied options, and normalized date metadata.
 - Repository encoding check rejects Unicode replacement characters in source, docs, fixtures, and UI files.
 - Solar-term validation checks canonical dataset shape, required names, Korean/Hanja labels, longitudes, UTC datetimes, complete years, carryover years, and generated engine module freshness.
+- Solar-term validation rejects missing, duplicated, out-of-order, out-of-range, or stale certified data.
 
 ## Edge Cases
 
@@ -53,4 +54,4 @@ When comparing with external manse calendars:
 5. Confirm whether mean or true solar time is applied.
 6. Compare intermediate basis values before comparing final pillars.
 
-Differences can be legitimate when any policy differs. v0.2.0 reports policy, data version, and basis values so those differences are auditable.
+Differences can be legitimate when any policy differs. v0.2.1 reports policy, data version, and basis values so those differences are auditable.

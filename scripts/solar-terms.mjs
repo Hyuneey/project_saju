@@ -3,8 +3,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const datasetPath = path.join(repoRoot, "data", "solar-terms", "solar-terms.v0.2.0.json");
+const datasetPath = path.join(repoRoot, "data", "solar-terms", "solar-terms.v0.2.1.json");
 const generatedModulePath = path.join(repoRoot, "packages", "manse-engine", "src", "solarTermsData.ts");
+const certificationLevels = new Set(["seed", "imported-unverified", "cross-checked", "production-certified"]);
 
 const termDefinitions = [
   { name: "sohan", nameKo: "소한", hanja: "小寒", longitude: 285, order: 0 },
@@ -71,8 +72,12 @@ function validateDataset(candidate) {
     errors.push("dataVersion must look like solar-terms-vX.Y.Z");
   }
 
+  if (!certificationLevels.has(candidate.certificationLevel)) {
+    errors.push("certificationLevel must be seed, imported-unverified, cross-checked, or production-certified");
+  }
+
   if (candidate.timezone !== "UTC") {
-    errors.push("timezone must be UTC in v0.2.0 datasets");
+    errors.push("timezone must be UTC in v0.2.1 datasets");
   }
 
   if (!candidate.source || typeof candidate.source !== "object" || Array.isArray(candidate.source)) {
@@ -85,9 +90,16 @@ function validateDataset(candidate) {
     if (candidate.source.retrievedAt !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(candidate.source.retrievedAt)) {
       errors.push("source.retrievedAt must use YYYY-MM-DD format");
     }
+    if (candidate.source.license !== undefined) {
+      expectString(candidate.source.license, "source.license", errors);
+    }
     if (candidate.source.notes !== undefined) {
       expectString(candidate.source.notes, "source.notes", errors);
     }
+  }
+
+  if (candidate.generatedAt !== undefined && !/^\d{4}-\d{2}-\d{2}$/.test(candidate.generatedAt)) {
+    errors.push("generatedAt must use YYYY-MM-DD format");
   }
 
   const support = candidate.supportedGregorianYears;
@@ -99,8 +111,6 @@ function validateDataset(candidate) {
     if (Number.isInteger(support.from) && Number.isInteger(support.to) && support.from > support.to) {
       errors.push("supportedGregorianYears.from must be less than or equal to supportedGregorianYears.to");
     }
-    validateYearList(support.completeYears, "supportedGregorianYears.completeYears", errors);
-    validateYearList(support.carryoverYears, "supportedGregorianYears.carryoverYears", errors);
   }
 
   if (!Array.isArray(candidate.terms)) {
@@ -147,6 +157,22 @@ function validateDataset(candidate) {
     }
 
     if (Number.isInteger(record.gregorianYear) && typeof record.name === "string") {
+      if (
+        Number.isInteger(support?.from) &&
+        Number.isInteger(support?.to) &&
+        (record.gregorianYear < support.from - 1 || record.gregorianYear > support.to)
+      ) {
+        errors.push(`${prefix}.gregorianYear is outside the supported range plus one carryover year`);
+      }
+
+      if (
+        Number.isInteger(support?.from) &&
+        record.gregorianYear === support.from - 1 &&
+        record.name !== "daeseol"
+      ) {
+        errors.push(`${prefix} may only contain daeseol in the carryover year ${support.from - 1}`);
+      }
+
       const key = `${record.gregorianYear}:${record.name}`;
       if (seenYearTerm.has(key)) {
         errors.push(`${prefix} duplicates ${key}`);
@@ -159,21 +185,32 @@ function validateDataset(candidate) {
     }
   }
 
-  for (const year of support?.completeYears ?? []) {
-    const records = recordsByYear.get(year) ?? [];
-    const names = new Set(records.map((record) => record.name));
-    for (const definition of termDefinitions) {
-      if (!names.has(definition.name)) {
-        errors.push(`complete year ${year} is missing ${definition.name}`);
+  if (Number.isInteger(support?.from) && Number.isInteger(support?.to)) {
+    for (let year = support.from; year <= support.to; year += 1) {
+      const records = recordsByYear.get(year) ?? [];
+      const names = new Set(records.map((record) => record.name));
+      for (const definition of termDefinitions) {
+        if (!names.has(definition.name)) {
+          errors.push(`certified year ${year} is missing ${definition.name}`);
+        }
+      }
+
+      if (records.length !== termDefinitions.length) {
+        errors.push(`certified year ${year} must contain exactly ${termDefinitions.length} major solar terms`);
       }
     }
   }
 
-  for (const year of support?.carryoverYears ?? []) {
+  const carryoverYear = support?.from - 1;
+  if (Number.isInteger(carryoverYear)) {
+    const year = carryoverYear;
     const records = recordsByYear.get(year) ?? [];
     const names = new Set(records.map((record) => record.name));
     if (!names.has("daeseol")) {
       errors.push(`carryover year ${year} must include daeseol`);
+    }
+    if (records.length !== 1) {
+      errors.push(`carryover year ${year} must contain only daeseol`);
     }
   }
 
@@ -203,31 +240,12 @@ function expectInteger(value, label, errors) {
   }
 }
 
-function validateYearList(value, label, errors) {
-  if (!Array.isArray(value)) {
-    errors.push(`${label} must be an array`);
-    return;
-  }
-
-  const seen = new Set();
-  for (const year of value) {
-    if (!Number.isInteger(year)) {
-      errors.push(`${label} must contain only integers`);
-      continue;
-    }
-    if (seen.has(year)) {
-      errors.push(`${label} contains duplicate year ${year}`);
-    }
-    seen.add(year);
-  }
-}
-
 function renderSolarTermsModule(dataset) {
   const source = JSON.stringify(dataset, null, 2);
 
   return `import type { SolarTermDataset } from "./types";
 
-// Generated from data/solar-terms/solar-terms.v0.2.0.json.
+// Generated from data/solar-terms/solar-terms.v0.2.1.json.
 // Run \`corepack pnpm build:solar-terms\` after changing the canonical dataset.
 export const SOLAR_TERM_DATASET = ${source} as const satisfies SolarTermDataset;
 

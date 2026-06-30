@@ -12,6 +12,7 @@ export {
 } from "./ganji";
 export { julianDayNumber } from "./julian";
 export {
+  assertCertifiedSolarTermDataset,
   TableCalendarDataProvider,
   TableSolarTermProvider,
   defaultCalendarDataProvider,
@@ -30,6 +31,7 @@ export type {
   PlainDateLike,
   Providers,
   SolarTerm,
+  SolarTermCertificationLevel,
   SolarTermDataset,
   SolarTermName,
   SolarTermRecord,
