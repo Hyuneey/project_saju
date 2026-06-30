@@ -9,7 +9,7 @@ const optionsSchema = z.object({
   monthBoundary: z.literal("solar_terms").optional(),
   dayBoundaryPolicy: z.enum(["midnight", "early_zi", "split_zi"]).optional(),
   solarTimePolicy: z.enum(["civil_time", "mean_solar_time", "true_solar_time"]).optional()
-}).optional();
+}).strict().optional();
 
 const inputSchema = z.object({
   calendarType: z.enum(["solar", "lunar"]),
@@ -24,9 +24,9 @@ const inputSchema = z.object({
     city: z.string().optional(),
     latitude: z.number().min(-90).max(90).optional(),
     longitude: z.number().min(-180).max(180).optional()
-  }).optional(),
+  }).strict().optional(),
   options: optionsSchema
-});
+}).strict();
 
 export function normalizeInput(input: CalculateSajuInput): NormalizedCalculateSajuInput {
   const raw = parseInputShape(input);
@@ -109,7 +109,7 @@ export function assertIanaTimezone(timezone: string): void {
 function parseInputShape(input: CalculateSajuInput): CalculateSajuInput {
   const parsed = inputSchema.safeParse(input);
   if (!parsed.success) {
-    throw new ManseError("INVALID_DATE", "Input does not match the calculateSaju schema.", parsed.error.issues, 400);
+    throw new ManseError("INVALID_INPUT", "Input does not match the calculateSaju schema.", parsed.error.issues);
   }
   return parsed.data;
 }

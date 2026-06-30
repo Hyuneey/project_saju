@@ -49,6 +49,7 @@ Defaults:
 interface CalculateSajuResult {
   input: CalculateSajuInput;
   normalizedDateTime: {
+    solarDate: string;
     civilTime: string;
     calculationTime: string;
     timezone: string;
@@ -67,12 +68,21 @@ interface CalculateSajuResult {
     hour: Record<string, unknown> | null;
   };
   metadata: {
+    engineVersion: string;
     policyVersion: string;
     dataVersion: string;
+    appliedOptions: {
+      yearBoundary: "lichun";
+      monthBoundary: "solar_terms";
+      dayBoundaryPolicy: "midnight" | "early_zi" | "split_zi";
+      solarTimePolicy: "civil_time" | "mean_solar_time" | "true_solar_time";
+    };
     warnings: Array<{ code: string; message: string; detail?: unknown }>;
   };
 }
 ```
+
+`engineVersion` identifies the package release. `policyVersion` identifies the calculation policy. v0.1.1 still uses `manse-policy-v0.1` because the pillar formulas are unchanged.
 
 ## Providers
 
@@ -101,7 +111,7 @@ Request body is `CalculateSajuInput`. Response body is `CalculateSajuResult` on 
 
 Error status mapping:
 
-- `400`: validation errors such as `INVALID_DATE`, `INVALID_TIME`, `INVALID_TIMEZONE`, `LUNAR_LEAP_MONTH_REQUIRED`
+- `400`: validation errors such as `INVALID_INPUT`, `INVALID_DATE`, `INVALID_TIME`, `INVALID_TIMEZONE`, `LUNAR_LEAP_MONTH_REQUIRED`
 - `422`: missing data such as `SOLAR_TERM_DATA_MISSING`, `LUNAR_CONVERSION_UNAVAILABLE`, `OUT_OF_SUPPORTED_RANGE`
 - `500`: `INTERNAL_CALCULATION_ERROR`
 
@@ -116,3 +126,9 @@ Error response:
   }
 }
 ```
+
+Unsupported forward-compatible policies:
+
+- `dayBoundaryPolicy: "early_zi"` and `"split_zi"` are accepted, but v0.1.1 calculates with `midnight` and emits `DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED`.
+- `solarTimePolicy: "mean_solar_time"` and `"true_solar_time"` are accepted, but v0.1.1 calculates with `civil_time`, sets `solarTimeApplied: false`, and emits `SOLAR_TIME_POLICY_NOT_IMPLEMENTED`.
+- Default lunar conversion is unavailable. Lunar input must include `lunarLeapMonth`, then fails with `LUNAR_CONVERSION_UNAVAILABLE` unless a custom `CalendarDataProvider` is supplied.

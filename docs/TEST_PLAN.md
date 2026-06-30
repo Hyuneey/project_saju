@@ -24,13 +24,19 @@ pnpm test
 - Lunar input without `lunarLeapMonth` fails.
 - Missing solar-term data fails with `SOLAR_TERM_DATA_MISSING`.
 - Invalid timezone fails with `INVALID_TIMEZONE`.
-- Result includes `policyVersion` and `dataVersion`.
+- Unknown request fields fail with `INVALID_INPUT`.
+- Unsupported lunar conversion fails with `LUNAR_CONVERSION_UNAVAILABLE` and request detail.
+- Unsupported forward-compatible policies emit explicit warnings while preserving the v0.1 policy.
+- Result includes `engineVersion`, `policyVersion`, `dataVersion`, applied options, and normalized date metadata.
+- Repository encoding check rejects Unicode replacement characters in source, docs, fixtures, and UI files.
 
 ## Edge Cases
 
 - Birth exactly equal to lichun should apply the new year.
 - Birth exactly equal to a month solar-term boundary should apply the new month.
 - `23:00` and `00:59` both map to 자 hour.
+- `00:59` and `01:00` preserve minute-level basis and split at the 축 boundary.
+- Dates before current-year 소한 use previous-year 대설 when that seed data exists.
 - Unsupported years must not use guessed solar-term dates.
 - Fixed offsets such as `+09:00` must be rejected even if the offset is valid.
 

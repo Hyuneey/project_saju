@@ -11,17 +11,27 @@ export class TableCalendarDataProvider implements CalendarDataProvider {
     return julianDayNumber(date);
   }
 
-  solarToLunar(): LunarDate {
+  solarToLunar(date: PlainDateLike): LunarDate {
     throw new ManseError(
       "LUNAR_CONVERSION_UNAVAILABLE",
-      "Solar-to-lunar conversion data is not available in the default table provider."
+      "Solar-to-lunar conversion data is not available in the default table provider.",
+      {
+        provider: "TableCalendarDataProvider",
+        requestedSolarDate: date,
+        supportedInDefaultProvider: false
+      }
     );
   }
 
-  lunarToSolar(): PlainDateLike {
+  lunarToSolar(date: LunarDate): PlainDateLike {
     throw new ManseError(
       "LUNAR_CONVERSION_UNAVAILABLE",
-      "Lunar-to-solar conversion data is not available in the default table provider."
+      "Lunar-to-solar conversion data is not available in the default table provider.",
+      {
+        provider: "TableCalendarDataProvider",
+        requestedLunarDate: date,
+        supportedInDefaultProvider: false
+      }
     );
   }
 }

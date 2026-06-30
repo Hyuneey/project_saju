@@ -2,6 +2,10 @@
 
 Policy version: `manse-policy-v0.1`
 
+Engine release: `0.1.1`
+
+v0.1.1 does not change the calculation formulas from v0.1. It adds stricter input validation, CI, UTF-8 repository defaults, and more explicit result metadata.
+
 ## Ganji Cycle
 
 Heavenly stems are indexed as:
@@ -96,15 +100,15 @@ If `birthTimeUnknown` is true, the hour pillar is `null`.
 
 ## dayBoundaryPolicy
 
-v0.1 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.1 emits a warning and still calculates with `midnight`.
+v0.1.1 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.1.1 emits a warning and still calculates with `midnight`.
 
 ## solarTimePolicy
 
-v0.1 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.1 emits a warning and still calculates with civil time.
+v0.1.1 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.1.1 emits a warning and still calculates with civil time.
 
 ## dataVersion
 
-Every result includes `metadata.dataVersion`.
+Every result includes `metadata.engineVersion`, `metadata.policyVersion`, and `metadata.dataVersion`.
 
 The default value combines the calendar provider and solar-term provider versions:
 

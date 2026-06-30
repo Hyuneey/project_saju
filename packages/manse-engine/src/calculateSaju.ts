@@ -1,5 +1,5 @@
 import { Temporal } from "@js-temporal/polyfill";
-import { MONTH_BOUNDARIES, POLICY_VERSION } from "./constants";
+import { ENGINE_VERSION, MONTH_BOUNDARIES, POLICY_VERSION } from "./constants";
 import { ManseError } from "./errors";
 import { calculateHourPillar, ganjiIndexToResult, mod, stemBranchToGanji } from "./ganji";
 import { defaultCalendarDataProvider, defaultSolarTermProvider, requireSolarTerm } from "./providers";
@@ -44,6 +44,7 @@ export async function calculateSaju(input: CalculateSajuInput, providers: Provid
   return {
     input: normalized.input,
     normalizedDateTime: {
+      solarDate: normalized.solarDate.toString(),
       civilTime: normalized.civilDateTime.toString(),
       calculationTime: normalized.calculationDateTime.toString(),
       timezone: normalized.input.timezone,
@@ -62,8 +63,10 @@ export async function calculateSaju(input: CalculateSajuInput, providers: Provid
       hour: hour?.basis ?? null
     },
     metadata: {
+      engineVersion: ENGINE_VERSION,
       policyVersion: POLICY_VERSION,
       dataVersion: dataVersion(calendarProvider, solarTermProvider),
+      appliedOptions: normalized.input.options,
       warnings: normalized.warnings
     }
   };
@@ -92,7 +95,7 @@ async function normalizeDateTime(input: CalculateSajuInput, calendarProvider: Ca
   if (normalizedInput.options.dayBoundaryPolicy !== "midnight") {
     warnings.push({
       code: "DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED",
-      message: "v0.1 accepts this dayBoundaryPolicy option but calculates using midnight policy.",
+      message: "v0.1.1 accepts this dayBoundaryPolicy option but calculates using midnight policy.",
       detail: { requested: normalizedInput.options.dayBoundaryPolicy, applied: "midnight" }
     });
   }
@@ -100,7 +103,7 @@ async function normalizeDateTime(input: CalculateSajuInput, calendarProvider: Ca
   if (normalizedInput.options.solarTimePolicy !== "civil_time") {
     warnings.push({
       code: "SOLAR_TIME_POLICY_NOT_IMPLEMENTED",
-      message: "v0.1 accepts this solarTimePolicy option but calculates using civil time.",
+      message: "v0.1.1 accepts this solarTimePolicy option but calculates using civil time.",
       detail: { requested: normalizedInput.options.solarTimePolicy, applied: "civil_time" }
     });
   }
@@ -255,7 +258,9 @@ function calculateHourPillarOrNull(
     pillar,
     basis: {
       policy: "two-hour branch windows",
+      civilTime: calculationTime.toPlainTime().toString(),
       civilHour: hour,
+      civilMinute: calculationTime.minute,
       dayStemIndex,
       hourBranchIndex: pillar.branchIndex,
       formula: "hourStemIndex=((dayStemIndex % 5) * 2 + hourBranchIndex) % 10",

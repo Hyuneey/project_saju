@@ -1,6 +1,6 @@
 export { calculateSaju } from "./calculateSaju";
-export { BRANCHES, DEFAULT_TIMEZONE, MONTH_BOUNDARIES, POLICY_VERSION, STEMS } from "./constants";
-export { ManseError, isManseError, statusForManseError } from "./errors";
+export { BRANCHES, DEFAULT_TIMEZONE, ENGINE_VERSION, MONTH_BOUNDARIES, POLICY_VERSION, STEMS } from "./constants";
+export { ManseError, isManseError, isManseErrorCode, statusForManseError } from "./errors";
 export type { ManseErrorCode } from "./errors";
 export {
   calculateHourPillar,

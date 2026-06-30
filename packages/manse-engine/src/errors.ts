@@ -1,4 +1,5 @@
 export const MANSE_ERROR_CODES = [
+  "INVALID_INPUT",
   "INVALID_DATE",
   "INVALID_TIME",
   "INVALID_TIMEZONE",
@@ -27,6 +28,7 @@ export class ManseError extends Error {
 
 export function statusForManseError(code: ManseErrorCode): number {
   switch (code) {
+    case "INVALID_INPUT":
     case "INVALID_DATE":
     case "INVALID_TIME":
     case "INVALID_TIMEZONE":
@@ -42,12 +44,17 @@ export function statusForManseError(code: ManseErrorCode): number {
   }
 }
 
+export function isManseErrorCode(code: unknown): code is ManseErrorCode {
+  return typeof code === "string" && (MANSE_ERROR_CODES as readonly string[]).includes(code);
+}
+
 export function isManseError(error: unknown): error is ManseError {
   return error instanceof ManseError || (
     typeof error === "object" &&
     error !== null &&
     "name" in error &&
     "code" in error &&
-    (error as { name?: unknown }).name === "ManseError"
+    (error as { name?: unknown }).name === "ManseError" &&
+    isManseErrorCode((error as { code?: unknown }).code)
   );
 }

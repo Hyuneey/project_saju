@@ -68,6 +68,7 @@ export interface CalculationWarning {
 export interface CalculateSajuResult {
   input: CalculateSajuInput;
   normalizedDateTime: {
+    solarDate: string;
     civilTime: string;
     calculationTime: string;
     timezone: string;
@@ -86,8 +87,10 @@ export interface CalculateSajuResult {
     hour: Record<string, unknown> | null;
   };
   metadata: {
+    engineVersion: string;
     policyVersion: string;
     dataVersion: string;
+    appliedOptions: NormalizedCalculateSajuInput["options"];
     warnings: CalculationWarning[];
   };
 }

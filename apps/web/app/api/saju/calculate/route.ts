@@ -9,7 +9,7 @@ export async function POST(request: Request) {
     body = await request.json();
   } catch {
     return Response.json(
-      { error: { code: "INVALID_DATE", message: "Request body must be valid JSON." } },
+      { error: { code: "INVALID_INPUT", message: "Request body must be valid JSON." } },
       { status: 400 }
     );
   }

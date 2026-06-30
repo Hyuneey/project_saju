@@ -1,8 +1,10 @@
-# Manse Engine v0.1 Project Brief
+# Manse Engine v0.1.1 Project Brief
 
 ## Goal
 
-Manse Engine v0.1 calculates Korean saju four pillars from birth date/time input with deterministic, testable code. It is not an interpretation or fortune-telling layer.
+Manse Engine v0.1.1 calculates Korean saju four pillars from birth date/time input with deterministic, testable code. It is not an interpretation or fortune-telling layer.
+
+v0.1.1 is a hardening release. The calculation policy remains `manse-policy-v0.1`; this release improves validation, CI, metadata transparency, and UTF-8 repository defaults without changing the pillar formulas.
 
 The calculation logic lives in `packages/manse-engine`. The Next.js app in `apps/web` calls the engine through `POST /api/saju/calculate` and contains no pillar calculation logic.
 
@@ -15,7 +17,8 @@ The calculation logic lives in `packages/manse-engine`. The Next.js app in `apps
 - Day pillar by Julian Day Number.
 - Hour pillar by two-hour branch windows.
 - Basis/debug metadata for each pillar.
-- Explicit `policyVersion` and `dataVersion` in every result.
+- Explicit `engineVersion`, `policyVersion`, and `dataVersion` in every result.
+- Strict input schema validation so unknown request fields fail instead of being silently discarded.
 
 ## Non-goals
 

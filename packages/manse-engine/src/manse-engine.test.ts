@@ -83,15 +83,72 @@ describe("hour pillar", () => {
 
     expect(result.pillars.hour).toBeNull();
     expect(result.basis.hour).toBeNull();
+    expect(result.metadata.warnings).toEqual([
+      expect.objectContaining({ code: "BIRTH_TIME_UNKNOWN_ASSUMED_MIDNIGHT" })
+    ]);
+  });
+
+  it("preserves minute-level basis while hour branch changes at 01:00", async () => {
+    const before = await calculateSaju(baseInput({ birthTime: "00:59" }));
+    const atBoundary = await calculateSaju(baseInput({ birthTime: "01:00" }));
+
+    expect(before.basis.hour?.hourBranchIndex).toBe(0);
+    expect(before.basis.hour?.civilMinute).toBe(59);
+    expect(atBoundary.basis.hour?.hourBranchIndex).toBe(1);
+    expect(atBoundary.basis.hour?.civilMinute).toBe(0);
   });
 });
 
 describe("validation and missing data", () => {
+  it("rejects unknown root, option, and birthPlace fields", async () => {
+    await expect(calculateSaju({ ...baseInput(), unknownField: true } as Parameters<typeof calculateSaju>[0]))
+      .rejects.toMatchObject({ code: "INVALID_INPUT" });
+
+    await expect(calculateSaju({
+      ...baseInput(),
+      options: { ...baseOptions(), unknownOption: true }
+    } as Parameters<typeof calculateSaju>[0])).rejects.toMatchObject({ code: "INVALID_INPUT" });
+
+    await expect(calculateSaju({
+      ...baseInput(),
+      birthPlace: { city: "Seoul", unknownPlaceField: true }
+    } as Parameters<typeof calculateSaju>[0])).rejects.toMatchObject({ code: "INVALID_INPUT" });
+  });
+
+  it("keeps date and time validation codes specific", async () => {
+    await expect(calculateSaju(baseInput({ birthDate: "2015-02-30" }))).rejects.toMatchObject({
+      code: "INVALID_DATE"
+    });
+
+    await expect(calculateSaju(baseInput({ birthTime: "24:00" }))).rejects.toMatchObject({
+      code: "INVALID_TIME"
+    });
+
+    await expect(calculateSaju({ ...baseInput(), birthTime: undefined })).rejects.toMatchObject({
+      code: "INVALID_TIME"
+    });
+  });
+
   it("requires lunarLeapMonth for lunar input", async () => {
     await expect(calculateSaju({
       ...baseInput({ birthDate: "2015-09-22" }),
       calendarType: "lunar"
     })).rejects.toMatchObject({ code: "LUNAR_LEAP_MONTH_REQUIRED" });
+  });
+
+  it("fails loudly with requested lunar date details when default lunar conversion is unavailable", async () => {
+    await expect(calculateSaju({
+      ...baseInput({ birthDate: "2015-09-22" }),
+      calendarType: "lunar",
+      lunarLeapMonth: false
+    })).rejects.toMatchObject({
+      code: "LUNAR_CONVERSION_UNAVAILABLE",
+      detail: {
+        provider: "TableCalendarDataProvider",
+        requestedLunarDate: { year: 2015, month: 9, day: 22, leapMonth: false },
+        supportedInDefaultProvider: false
+      }
+    });
   });
 
   it("fails loudly when solar-term data is missing", async () => {
@@ -106,13 +163,56 @@ describe("validation and missing data", () => {
     });
   });
 
-  it("returns policyVersion and dataVersion", async () => {
+  it("returns engineVersion, policyVersion, dataVersion, normalized date, and applied options", async () => {
     const result = await calculateSaju(baseInput({ birthDate: "2015-09-22" }));
 
+    expect(result.metadata.engineVersion).toBe("0.1.1");
     expect(result.metadata.policyVersion).toBe("manse-policy-v0.1");
     expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-seed-0.1.0");
+    expect(result.metadata.appliedOptions).toEqual(baseOptions());
+    expect(result.normalizedDateTime.solarDate).toBe("2015-09-22");
+  });
+
+  it("warns clearly for accepted but unsupported forward-compatible policies", async () => {
+    const result = await calculateSaju(baseInput({
+      options: {
+        ...baseOptions(),
+        dayBoundaryPolicy: "split_zi",
+        solarTimePolicy: "true_solar_time"
+      }
+    }));
+
+    expect(result.normalizedDateTime.solarTimeApplied).toBe(false);
+    expect(result.basis.day.requestedDayBoundaryPolicy).toBe("split_zi");
+    expect(result.basis.day.appliedDayBoundaryPolicy).toBe("midnight");
+    expect(result.metadata.warnings).toEqual([
+      expect.objectContaining({
+        code: "DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED",
+        detail: { requested: "split_zi", applied: "midnight" }
+      }),
+      expect.objectContaining({
+        code: "SOLAR_TIME_POLICY_NOT_IMPLEMENTED",
+        detail: { requested: "true_solar_time", applied: "civil_time" }
+      })
+    ]);
+  });
+
+  it("uses previous year's daeseol for dates before current year's sohan", async () => {
+    const result = await calculateSaju(baseInput({ birthDate: "2026-01-01", birthTime: "12:00" }));
+
+    expect(result.basis.month.activeBoundary).toMatchObject({ key: "daeseol", monthOrder: 10 });
+    expect(result.basis.month.activeTerm).toMatchObject({ key: "daeseol", dateTime: "2025-12-06T21:04:00" });
   });
 });
+
+function baseOptions(): NonNullable<Parameters<typeof calculateSaju>[0]["options"]> {
+  return {
+    yearBoundary: "lichun",
+    monthBoundary: "solar_terms",
+    dayBoundaryPolicy: "midnight",
+    solarTimePolicy: "civil_time"
+  };
+}
 
 function baseInput(overrides: Partial<Parameters<typeof calculateSaju>[0]> = {}): Parameters<typeof calculateSaju>[0] {
   return {
@@ -122,12 +222,7 @@ function baseInput(overrides: Partial<Parameters<typeof calculateSaju>[0]> = {})
     birthTimeUnknown: false,
     timezone: "Asia/Seoul",
     gender: "unknown",
-    options: {
-      yearBoundary: "lichun",
-      monthBoundary: "solar_terms",
-      dayBoundaryPolicy: "midnight",
-      solarTimePolicy: "civil_time"
-    },
+    options: baseOptions(),
     ...overrides
   };
 }
