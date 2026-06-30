@@ -1,14 +1,16 @@
 {
   "name": "project-saju",
   "private": true,
-  "version": "0.1.1",
+  "version": "0.2.0",
   "packageManager": "pnpm@10.14.0",
   "scripts": {
+    "build:solar-terms": "node scripts/solar-terms.mjs generate",
     "check:encoding": "node scripts/check-encoding.mjs",
     "dev": "corepack pnpm --filter web dev",
     "test": "vitest run",
     "typecheck": "corepack pnpm -r typecheck",
-    "verify": "corepack pnpm check:encoding && corepack pnpm test && corepack pnpm typecheck"
+    "validate:solar-terms": "node scripts/solar-terms.mjs validate",
+    "verify": "corepack pnpm check:encoding && corepack pnpm validate:solar-terms && corepack pnpm test && corepack pnpm typecheck"
   },
   "devDependencies": {
     "@types/node": "^24.0.0",

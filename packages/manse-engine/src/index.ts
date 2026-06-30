@@ -15,7 +15,8 @@ export {
   TableCalendarDataProvider,
   TableSolarTermProvider,
   defaultCalendarDataProvider,
-  defaultSolarTermProvider
+  defaultSolarTermProvider,
+  solarTermDatasetToTable
 } from "./providers";
 export type {
   CalculateSajuInput,
@@ -29,6 +30,9 @@ export type {
   PlainDateLike,
   Providers,
   SolarTerm,
+  SolarTermDataset,
+  SolarTermName,
+  SolarTermRecord,
   SolarTermProvider,
   SolarTimePolicy
 } from "./types";

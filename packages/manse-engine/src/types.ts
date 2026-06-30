@@ -4,6 +4,7 @@ export type CalendarType = "solar" | "lunar";
 export type Gender = "male" | "female" | "unknown";
 export type DayBoundaryPolicy = "midnight" | "early_zi" | "split_zi";
 export type SolarTimePolicy = "civil_time" | "mean_solar_time" | "true_solar_time";
+export type SolarTermName = SolarTermKey;
 
 export interface PlainDateLike {
   year: number;
@@ -96,12 +97,42 @@ export interface CalculateSajuResult {
 }
 
 export interface SolarTerm {
-  key: SolarTermKey;
+  key: SolarTermName;
   name: string;
+  nameKo?: string;
   hanja: string;
   longitude: number;
+  at?: string;
   dateTime: string;
   timezone: string;
+  source?: string;
+}
+
+export interface SolarTermDataset {
+  dataVersion: string;
+  source: {
+    name: string;
+    url?: string;
+    retrievedAt?: string;
+    notes?: string;
+  };
+  timezone: "UTC";
+  supportedGregorianYears: {
+    from: number;
+    to: number;
+    completeYears: readonly number[];
+    carryoverYears: readonly number[];
+  };
+  terms: readonly SolarTermRecord[];
+}
+
+export interface SolarTermRecord {
+  gregorianYear: number;
+  name: SolarTermName;
+  nameKo: string;
+  hanja: string;
+  longitude: number;
+  at: string;
   source?: string;
 }
 

@@ -40,6 +40,27 @@ describe("year pillar", () => {
 });
 
 describe("month pillar", () => {
+  it("does not advance month on the solar-term date before the exact boundary time", async () => {
+    const before = await calculateSaju(baseInput({ birthDate: "2015-03-06", birthTime: "06:54" }));
+    const atBoundary = await calculateSaju(baseInput({ birthDate: "2015-03-06", birthTime: "06:55" }));
+
+    expect(before.basis.month.activeBoundary).toMatchObject({ key: "lichun", monthOrder: 0 });
+    expect(before.basis.month.activeTerm).toMatchObject({
+      key: "lichun",
+      at: "2015-02-04T03:58:00Z",
+      dateTime: "2015-02-04T03:58:00"
+    });
+    expect(before.pillars.month.ganji).toBe("무인");
+
+    expect(atBoundary.basis.month.activeBoundary).toMatchObject({ key: "gyeongchip", monthOrder: 1 });
+    expect(atBoundary.basis.month.activeTerm).toMatchObject({
+      key: "gyeongchip",
+      at: "2015-03-05T21:55:00Z",
+      dateTime: "2015-03-05T21:55:00"
+    });
+    expect(atBoundary.pillars.month.ganji).toBe("기묘");
+  });
+
   it("changes at the cheongmyeong solar-term boundary", async () => {
     const before = await calculateSaju(baseInput({ birthDate: "2015-04-05", birthTime: "11:38" }));
     const atBoundary = await calculateSaju(baseInput({ birthDate: "2015-04-05", birthTime: "11:39" }));
@@ -166,9 +187,9 @@ describe("validation and missing data", () => {
   it("returns engineVersion, policyVersion, dataVersion, normalized date, and applied options", async () => {
     const result = await calculateSaju(baseInput({ birthDate: "2015-09-22" }));
 
-    expect(result.metadata.engineVersion).toBe("0.1.1");
+    expect(result.metadata.engineVersion).toBe("0.2.0");
     expect(result.metadata.policyVersion).toBe("manse-policy-v0.1");
-    expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-seed-0.1.0");
+    expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.0");
     expect(result.metadata.appliedOptions).toEqual(baseOptions());
     expect(result.normalizedDateTime.solarDate).toBe("2015-09-22");
   });
@@ -201,7 +222,11 @@ describe("validation and missing data", () => {
     const result = await calculateSaju(baseInput({ birthDate: "2026-01-01", birthTime: "12:00" }));
 
     expect(result.basis.month.activeBoundary).toMatchObject({ key: "daeseol", monthOrder: 10 });
-    expect(result.basis.month.activeTerm).toMatchObject({ key: "daeseol", dateTime: "2025-12-06T21:04:00" });
+    expect(result.basis.month.activeTerm).toMatchObject({
+      key: "daeseol",
+      at: "2025-12-06T21:04:00Z",
+      dateTime: "2025-12-06T21:04:00"
+    });
   });
 });
 

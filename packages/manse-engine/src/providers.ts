@@ -1,8 +1,15 @@
 import { MONTH_BOUNDARIES } from "./constants";
 import { ManseError } from "./errors";
 import { julianDayNumber } from "./julian";
-import { SOLAR_TERM_DATA_VERSION, SOLAR_TERM_TABLE } from "./solarTermsData";
-import type { CalendarDataProvider, LunarDate, PlainDateLike, SolarTerm, SolarTermProvider } from "./types";
+import { SOLAR_TERM_DATASET } from "./solarTermsData";
+import type {
+  CalendarDataProvider,
+  LunarDate,
+  PlainDateLike,
+  SolarTerm,
+  SolarTermDataset,
+  SolarTermProvider
+} from "./types";
 
 export class TableCalendarDataProvider implements CalendarDataProvider {
   readonly dataVersion = "calendar-jdn-gregorian-0.1.0";
@@ -40,9 +47,15 @@ export class TableSolarTermProvider implements SolarTermProvider {
   readonly dataVersion: string;
   private readonly table: Record<string, SolarTerm[]>;
 
-  constructor(table: Record<string, SolarTerm[]> = SOLAR_TERM_TABLE, dataVersion = SOLAR_TERM_DATA_VERSION) {
-    this.table = table;
-    this.dataVersion = dataVersion;
+  constructor(source: Record<string, SolarTerm[]> | SolarTermDataset = SOLAR_TERM_DATASET, dataVersion?: string) {
+    if (isSolarTermDataset(source)) {
+      this.table = solarTermDatasetToTable(source);
+      this.dataVersion = source.dataVersion;
+      return;
+    }
+
+    this.table = source;
+    this.dataVersion = dataVersion ?? "custom-solar-term-table";
   }
 
   getTermsForGregorianYear(year: number): SolarTerm[] {
@@ -51,7 +64,7 @@ export class TableSolarTermProvider implements SolarTermProvider {
       throw new ManseError(
         "SOLAR_TERM_DATA_MISSING",
         `Solar-term data is missing for Gregorian year ${year}.`,
-        { year }
+        { year, dataVersion: this.dataVersion }
       );
     }
     return terms;
@@ -74,6 +87,32 @@ export class TableSolarTermProvider implements SolarTermProvider {
 export const defaultCalendarDataProvider = new TableCalendarDataProvider();
 export const defaultSolarTermProvider = new TableSolarTermProvider();
 
+export function solarTermDatasetToTable(dataset: SolarTermDataset): Record<string, SolarTerm[]> {
+  const table: Record<string, SolarTerm[]> = {};
+
+  for (const record of dataset.terms) {
+    const year = String(record.gregorianYear);
+    table[year] ??= [];
+    table[year].push({
+      key: record.name,
+      name: record.nameKo,
+      nameKo: record.nameKo,
+      hanja: record.hanja,
+      longitude: record.longitude,
+      at: record.at,
+      dateTime: utcInstantToPlainDateTime(record.at),
+      timezone: dataset.timezone,
+      source: record.source ?? dataset.source.name
+    });
+  }
+
+  for (const terms of Object.values(table)) {
+    terms.sort((a, b) => a.dateTime.localeCompare(b.dateTime));
+  }
+
+  return table;
+}
+
 export function requireSolarTerm(terms: SolarTerm[], key: SolarTerm["key"], year: number): SolarTerm {
   const term = terms.find((candidate) => candidate.key === key);
   if (!term) {
@@ -85,4 +124,12 @@ export function requireSolarTerm(terms: SolarTerm[], key: SolarTerm["key"], year
     );
   }
   return term;
+}
+
+function isSolarTermDataset(source: Record<string, SolarTerm[]> | SolarTermDataset): source is SolarTermDataset {
+  return "dataVersion" in source && "terms" in source && Array.isArray(source.terms);
+}
+
+function utcInstantToPlainDateTime(value: string): string {
+  return value.endsWith("Z") ? value.slice(0, -1) : value;
 }

@@ -82,7 +82,7 @@ interface CalculateSajuResult {
 }
 ```
 
-`engineVersion` identifies the package release. `policyVersion` identifies the calculation policy. v0.1.1 still uses `manse-policy-v0.1` because the pillar formulas are unchanged.
+`engineVersion` identifies the package release. `policyVersion` identifies the calculation policy. v0.2.0 still uses `manse-policy-v0.1` because the pillar formulas are unchanged.
 
 ## Providers
 
@@ -101,7 +101,7 @@ interface SolarTermProvider {
 }
 ```
 
-The default providers are table-driven. They do not call live APIs.
+The default providers are table-driven. They do not call live APIs at runtime. The default solar-term provider consumes the generated internal module built from `data/solar-terms/solar-terms.v0.2.0.json`.
 
 ## HTTP Route
 
@@ -129,6 +129,6 @@ Error response:
 
 Unsupported forward-compatible policies:
 
-- `dayBoundaryPolicy: "early_zi"` and `"split_zi"` are accepted, but v0.1.1 calculates with `midnight` and emits `DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED`.
-- `solarTimePolicy: "mean_solar_time"` and `"true_solar_time"` are accepted, but v0.1.1 calculates with `civil_time`, sets `solarTimeApplied: false`, and emits `SOLAR_TIME_POLICY_NOT_IMPLEMENTED`.
+- `dayBoundaryPolicy: "early_zi"` and `"split_zi"` are accepted, but v0.2.0 calculates with `midnight` and emits `DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED`.
+- `solarTimePolicy: "mean_solar_time"` and `"true_solar_time"` are accepted, but v0.2.0 calculates with `civil_time`, sets `solarTimeApplied: false`, and emits `SOLAR_TIME_POLICY_NOT_IMPLEMENTED`.
 - Default lunar conversion is unavailable. Lunar input must include `lunarLeapMonth`, then fails with `LUNAR_CONVERSION_UNAVAILABLE` unless a custom `CalendarDataProvider` is supplied.

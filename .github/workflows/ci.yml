@@ -29,6 +29,9 @@ jobs:
       - name: Check encoding
         run: pnpm check:encoding
 
+      - name: Validate solar-term data
+        run: pnpm validate:solar-terms
+
       - name: Run tests
         run: pnpm test
 

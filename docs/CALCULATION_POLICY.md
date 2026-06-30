@@ -2,9 +2,9 @@
 
 Policy version: `manse-policy-v0.1`
 
-Engine release: `0.1.1`
+Engine release: `0.2.0`
 
-v0.1.1 does not change the calculation formulas from v0.1. It adds stricter input validation, CI, UTF-8 repository defaults, and more explicit result metadata.
+v0.2.0 does not change the calculation formulas from v0.1. It adds a versioned solar-term data layer with canonical JSON storage, validation, and generated engine data.
 
 ## Ganji Cycle
 
@@ -39,6 +39,8 @@ The offset is based on 1984 being `갑자`.
 ## Month Pillar Boundary
 
 The month pillar uses 12 solar-term boundaries, not Gregorian months and not lunar months.
+
+The boundary datetime is exact. Date-only solar-term data is insufficient: if a solar term occurs at 17:00, births before 17:00 remain in the previous month pillar and births at or after 17:00 use the new month pillar.
 
 | Month order | Boundary | Branch |
 | --- | --- | --- |
@@ -100,11 +102,11 @@ If `birthTimeUnknown` is true, the hour pillar is `null`.
 
 ## dayBoundaryPolicy
 
-v0.1.1 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.1.1 emits a warning and still calculates with `midnight`.
+v0.2.0 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.2.0 emits a warning and still calculates with `midnight`.
 
 ## solarTimePolicy
 
-v0.1.1 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.1.1 emits a warning and still calculates with civil time.
+v0.2.0 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.2.0 emits a warning and still calculates with civil time.
 
 ## dataVersion
 
@@ -112,17 +114,17 @@ Every result includes `metadata.engineVersion`, `metadata.policyVersion`, and `m
 
 The default value combines the calendar provider and solar-term provider versions:
 
-`calendar:calendar-jdn-gregorian-0.1.0;solarTerms:solar-terms-seed-0.1.0`
+`calendar:calendar-jdn-gregorian-0.1.0;solarTerms:solar-terms-v0.2.0`
 
-The seed solar-term table is intentionally small and table-driven. Unsupported years fail with `SOLAR_TERM_DATA_MISSING`.
+The solar-term dataset is intentionally small and table-driven in v0.2.0. Unsupported years fail with `SOLAR_TERM_DATA_MISSING`.
 
 ## Known Limitations
 
 - Default lunar conversion is unavailable and fails with `LUNAR_CONVERSION_UNAVAILABLE`.
-- Default solar-term coverage is limited to seed rows in `data/solar-terms/solar-terms.v0.1.json`.
-- Mean solar time and true solar time are not applied in v0.1.
-- `early_zi` and `split_zi` day boundary policies are accepted but not applied in v0.1.
+- Default solar-term coverage is limited to rows in `data/solar-terms/solar-terms.v0.2.0.json`.
+- Mean solar time and true solar time are not applied in v0.2.0.
+- `early_zi` and `split_zi` day boundary policies are accepted but not applied in v0.2.0.
 
 ## Seed Data Sources
 
-The checked-in seed rows are manually transcribed from UTC tables that identify JPL Horizons as source data on the relevant Wikipedia solar-term pages, including [Lichun](https://en.wikipedia.org/wiki/Lichun), [Jingzhe](https://en.wikipedia.org/wiki/Jingzhe), [Qingming](https://en.wikipedia.org/wiki/Qingming_(solar_term)), [Lixia](https://en.wikipedia.org/wiki/Lixia), [Mangzhong](https://en.wikipedia.org/wiki/Mangzhong), [Xiaoshu](https://en.wikipedia.org/wiki/Xiaoshu), [Liqiu](https://en.wikipedia.org/wiki/Liqiu), [Bailu](https://en.wikipedia.org/wiki/Bailu_(solar_term)), [Hanlu](https://en.wikipedia.org/wiki/Hanlu), [Lidong](https://en.wikipedia.org/wiki/Lidong), [Daxue](https://en.wikipedia.org/wiki/Daxue_(solar_term)), and [Xiaohan](https://en.wikipedia.org/wiki/Xiaohan).
+The checked-in v0.2.0 rows are manually transcribed from UTC tables that identify JPL Horizons as source data on the relevant Wikipedia solar-term pages, including [Lichun](https://en.wikipedia.org/wiki/Lichun), [Jingzhe](https://en.wikipedia.org/wiki/Jingzhe), [Qingming](https://en.wikipedia.org/wiki/Qingming_(solar_term)), [Lixia](https://en.wikipedia.org/wiki/Lixia), [Mangzhong](https://en.wikipedia.org/wiki/Mangzhong), [Xiaoshu](https://en.wikipedia.org/wiki/Xiaoshu), [Liqiu](https://en.wikipedia.org/wiki/Liqiu), [Bailu](https://en.wikipedia.org/wiki/Bailu_(solar_term)), [Hanlu](https://en.wikipedia.org/wiki/Hanlu), [Lidong](https://en.wikipedia.org/wiki/Lidong), [Daxue](https://en.wikipedia.org/wiki/Daxue_(solar_term)), and [Xiaohan](https://en.wikipedia.org/wiki/Xiaohan).

@@ -95,7 +95,7 @@ async function normalizeDateTime(input: CalculateSajuInput, calendarProvider: Ca
   if (normalizedInput.options.dayBoundaryPolicy !== "midnight") {
     warnings.push({
       code: "DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED",
-      message: "v0.1.1 accepts this dayBoundaryPolicy option but calculates using midnight policy.",
+      message: `v${ENGINE_VERSION} accepts this dayBoundaryPolicy option but calculates using midnight policy.`,
       detail: { requested: normalizedInput.options.dayBoundaryPolicy, applied: "midnight" }
     });
   }
@@ -103,7 +103,7 @@ async function normalizeDateTime(input: CalculateSajuInput, calendarProvider: Ca
   if (normalizedInput.options.solarTimePolicy !== "civil_time") {
     warnings.push({
       code: "SOLAR_TIME_POLICY_NOT_IMPLEMENTED",
-      message: "v0.1.1 accepts this solarTimePolicy option but calculates using civil time.",
+      message: `v${ENGINE_VERSION} accepts this solarTimePolicy option but calculates using civil time.`,
       detail: { requested: normalizedInput.options.solarTimePolicy, applied: "civil_time" }
     });
   }

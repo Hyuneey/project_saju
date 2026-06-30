@@ -1,8 +1,4 @@
-import type { SolarTermDataset } from "./types";
-
-// Generated from data/solar-terms/solar-terms.v0.2.0.json.
-// Run `corepack pnpm build:solar-terms` after changing the canonical dataset.
-export const SOLAR_TERM_DATASET = {
+{
   "dataVersion": "solar-terms-v0.2.0",
   "source": {
     "name": "JPL Horizons UTC solar-term tables transcribed from Wikipedia solar-term pages",
@@ -14,14 +10,8 @@ export const SOLAR_TERM_DATASET = {
   "supportedGregorianYears": {
     "from": 2015,
     "to": 2026,
-    "completeYears": [
-      2015,
-      2026
-    ],
-    "carryoverYears": [
-      2014,
-      2025
-    ]
+    "completeYears": [2015, 2026],
+    "carryoverYears": [2014, 2025]
   },
   "terms": [
     {
@@ -259,7 +249,4 @@ export const SOLAR_TERM_DATASET = {
       "source": "Daxue solar-term UTC table"
     }
   ]
-} as const satisfies SolarTermDataset;
-
-export const SOLAR_TERM_DATA_VERSION = SOLAR_TERM_DATASET.dataVersion;
-export const SOLAR_TERM_SOURCE = SOLAR_TERM_DATASET.source.notes ?? SOLAR_TERM_DATASET.source.name;
+}
