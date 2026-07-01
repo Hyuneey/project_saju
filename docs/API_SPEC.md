@@ -63,6 +63,7 @@ interface CalculateSajuResult {
     day: GanjiResult;
     hour: GanjiResult | null;
   };
+  derived: OriginalChartDerivedData;
   basis: {
     year: Record<string, unknown>;
     month: Record<string, unknown>;
@@ -88,7 +89,39 @@ interface CalculateSajuResult {
 }
 ```
 
-`engineVersion` identifies the package release. `policyVersion` identifies the calculation policy. v0.3.1 still uses `manse-policy-v0.1` because the pillar formulas are unchanged.
+`engineVersion` identifies the package release. `policyVersion` identifies the calculation policy. v0.4.0 still uses `manse-policy-v0.1` because the pillar formulas are unchanged.
+
+## Derived Data
+
+`derived` is a deterministic original-chart transformation from the already calculated `pillars`. It is not natural-language interpretation.
+
+```ts
+interface OriginalChartDerivedData {
+  dataVersion: "original-chart-derived-v0.4.0";
+  dayMaster: StemDerivedMetadata;
+  pillars: Record<"year" | "month" | "day" | "hour", DerivedPillar | null>;
+  counts: {
+    elements: {
+      visible: Record<FiveElement, number>;
+      hiddenStems: Record<FiveElement, number>;
+      totalWithHiddenStems: Record<FiveElement, number>;
+    };
+    yinYang: {
+      visible: Record<"yang" | "yin", number>;
+      hiddenStems: Record<"yang" | "yin", number>;
+      totalWithHiddenStems: Record<"yang" | "yin", number>;
+    };
+    tenGods: {
+      visibleStems: Record<TenGod, number>;
+      branchMain: Record<TenGod, number>;
+      hiddenStems: Record<TenGod, number>;
+      totalWithHiddenStems: Record<TenGod, number>;
+    };
+  };
+}
+```
+
+The derived layer includes day master metadata, stem and branch element/yin-yang metadata, hidden stems, ten gods relative to the day master, and counts. It does not include strength, balance, favorable/unfavorable, yongsin, geokguk, daewoon, sewoon, shinsal, or fortune text.
 
 Default calendar provider metadata shape:
 
@@ -153,7 +186,7 @@ Error status mapping:
 - `422`: missing, invalid, or unsupported provider data such as `SOLAR_TERM_DATA_MISSING`, `SOLAR_TERM_DATA_INVALID`, `LUNAR_CONVERSION_UNAVAILABLE`, `OUT_OF_SUPPORTED_RANGE`
 - `500`: `INTERNAL_CALCULATION_ERROR`
 
-`LUNAR_CONVERSION_UNAVAILABLE` remains a typed provider error for custom providers that do not support conversion. The default v0.3.1 provider supports Korean lunar conversion inside the documented range.
+`LUNAR_CONVERSION_UNAVAILABLE` remains a typed provider error for custom providers that do not support conversion. The default provider supports Korean lunar conversion inside the documented range.
 
 Example lunar out-of-range response:
 
@@ -178,5 +211,5 @@ Example lunar out-of-range response:
 
 Unsupported forward-compatible policies:
 
-- `dayBoundaryPolicy: "early_zi"` and `"split_zi"` are accepted, but v0.3.1 calculates with `midnight` and emits `DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED`.
-- `solarTimePolicy: "mean_solar_time"` and `"true_solar_time"` are accepted, but v0.3.1 calculates with `civil_time`, sets `solarTimeApplied: false`, and emits `SOLAR_TIME_POLICY_NOT_IMPLEMENTED`.
+- `dayBoundaryPolicy: "early_zi"` and `"split_zi"` are accepted, but v0.4.0 calculates with `midnight` and emits `DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED`.
+- `solarTimePolicy: "mean_solar_time"` and `"true_solar_time"` are accepted, but v0.4.0 calculates with `civil_time`, sets `solarTimeApplied: false`, and emits `SOLAR_TIME_POLICY_NOT_IMPLEMENTED`.

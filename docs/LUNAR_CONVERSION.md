@@ -2,7 +2,7 @@
 
 ## Scope
 
-v0.3.1 supports Korean lunar calendar input through the default `TableCalendarDataProvider`.
+v0.3.1 and later support Korean lunar calendar input through the default `TableCalendarDataProvider`.
 
 The runtime calculation path is local and deterministic:
 

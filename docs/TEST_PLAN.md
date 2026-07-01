@@ -9,7 +9,7 @@ corepack pnpm verify
 ## Golden Fixtures
 
 - `data/fixtures/kasi-2015-09-22.json` records the KASI sample date, Julian Day Number `2457288`, and expected day ganji.
-- `data/fixtures/lunar-conversion-v0.3.1.json` records Korean lunar/solar provider examples used by v0.3.1 tests and documentation.
+- `data/fixtures/lunar-conversion-v0.3.1.json` records Korean lunar/solar provider examples used by tests and documentation.
 - `data/solar-terms/solar-terms.v0.2.2.json` is the canonical versioned solar-term dataset used to generate the default engine data module.
 
 ## Required Tests
@@ -31,6 +31,13 @@ corepack pnpm verify
 - KASI monthly lunar/solar table examples convert both directions.
 - Default lunar provider metadata exposes source package, source version, supported ranges, and `runtimeNetwork: false`.
 - Default lunar provider creates a fresh stateful converter instance for each conversion call.
+- Original-chart derived data returns day master metadata.
+- Original-chart derived data returns stem and branch element/yin-yang metadata.
+- Original-chart derived data returns hidden stems.
+- Original-chart derived data maps ten gods relative to the day master.
+- Original-chart derived data returns five-element, yin-yang, and ten-god counts.
+- Original-chart derived data omits hour derived data when birth time is unknown.
+- Original-chart derived data contains no interpretive judgment fields.
 - Impossible Korean lunar leap-month dates fail with `INVALID_DATE`.
 - Korean lunar provider out-of-range dates fail with `OUT_OF_SUPPORTED_RANGE`.
 - Default provider can convert solar dates back to Korean lunar dates.
@@ -38,7 +45,7 @@ corepack pnpm verify
 - Invalid timezone fails with `INVALID_TIMEZONE`.
 - Unknown request fields fail with `INVALID_INPUT`.
 - Unsupported forward-compatible policies emit explicit warnings while preserving the v0.1 policy.
-- Result includes `engineVersion`, `policyVersion`, `dataVersion`, applied options, and normalized date metadata.
+- Result includes `engineVersion`, `policyVersion`, `dataVersion`, `derived`, applied options, and normalized date metadata.
 - Repository encoding check rejects Unicode replacement characters in source, docs, fixtures, and UI files.
 - Solar-term validation checks canonical dataset shape, required names, Korean/Hanja labels, longitudes, UTC datetimes, complete years, carryover years, and generated engine module freshness.
 - Solar-term validation rejects missing, duplicated, out-of-order, out-of-range, or stale certified data.
@@ -68,4 +75,4 @@ When comparing with external manse calendars:
 5. Confirm whether mean or true solar time is applied.
 6. Compare intermediate basis values before comparing final pillars.
 
-Differences can be legitimate when any policy differs. v0.3.1 reports policy, data version, provider metadata, and basis values so those differences are auditable.
+Differences can be legitimate when any policy differs. v0.4.0 reports policy, data version, provider metadata, derived data version, and basis values so those differences are auditable.

@@ -1,5 +1,6 @@
 import { Temporal } from "@js-temporal/polyfill";
 import { ENGINE_VERSION, MONTH_BOUNDARIES, POLICY_VERSION } from "./constants";
+import { deriveOriginalChart } from "./derived";
 import { ManseError } from "./errors";
 import { calculateHourPillar, ganjiIndexToResult, mod, stemBranchToGanji } from "./ganji";
 import { defaultCalendarDataProvider, defaultSolarTermProvider, requireSolarTerm } from "./providers";
@@ -42,6 +43,12 @@ export async function calculateSaju(input: CalculateSajuInput, providers: Provid
   const month = await calculateMonthPillar(calculationTime, year.pillar.stemIndex, solarTermProvider);
   const day = await calculateDayPillar(calculationTime, calendarProvider, normalized.input);
   const hour = calculateHourPillarOrNull(calculationTime, day.pillar.stemIndex, normalized.input);
+  const pillars = {
+    year: year.pillar,
+    month: month.pillar,
+    day: day.pillar,
+    hour: hour?.pillar ?? null
+  };
 
   return {
     input: normalized.input,
@@ -52,12 +59,8 @@ export async function calculateSaju(input: CalculateSajuInput, providers: Provid
       timezone: normalized.input.timezone,
       solarTimeApplied: false
     },
-    pillars: {
-      year: year.pillar,
-      month: month.pillar,
-      day: day.pillar,
-      hour: hour?.pillar ?? null
-    },
+    pillars,
+    derived: deriveOriginalChart(pillars),
     basis: {
       year: year.basis,
       month: month.basis,

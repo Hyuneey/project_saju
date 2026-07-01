@@ -1,5 +1,12 @@
 export { calculateSaju } from "./calculateSaju";
 export { BRANCHES, DEFAULT_TIMEZONE, ENGINE_VERSION, MONTH_BOUNDARIES, POLICY_VERSION, STEMS } from "./constants";
+export {
+  ORIGINAL_CHART_DERIVED_DATA_VERSION,
+  branchMetadata,
+  deriveOriginalChart,
+  stemMetadata,
+  tenGodFor
+} from "./derived";
 export { ManseError, isManseError, isManseErrorCode, statusForManseError } from "./errors";
 export type { ManseErrorCode } from "./errors";
 export {
@@ -28,10 +35,20 @@ export type {
   CalculationWarning,
   DateRange,
   DayBoundaryPolicy,
+  DerivedBranch,
+  DerivedCounts,
+  DerivedPillar,
+  DerivedStem,
+  ElementCounts,
+  FiveElement,
   GanjiResult,
   Gender,
+  HiddenStemDerived,
+  HiddenStemRole,
   LunarDate,
+  OriginalChartDerivedData,
   PlainDateLike,
+  PillarKey,
   Providers,
   SolarTerm,
   SolarTermCertificationLevel,
@@ -40,5 +57,10 @@ export type {
   SolarTermProviderMetadata,
   SolarTermRecord,
   SolarTermProvider,
-  SolarTimePolicy
+  SolarTimePolicy,
+  StemDerivedMetadata,
+  TenGod,
+  TenGodCounts,
+  YinYang,
+  YinYangCounts
 } from "./types";

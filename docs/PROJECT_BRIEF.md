@@ -1,10 +1,10 @@
-# Manse Engine v0.3.1 Project Brief
+# Manse Engine v0.4.0 Project Brief
 
 ## Goal
 
-Manse Engine v0.3.1 calculates Korean saju four pillars from solar or Korean lunar birth-date input with deterministic, testable code. It is not an interpretation or fortune-telling layer.
+Manse Engine v0.4.0 calculates Korean saju four pillars from solar or Korean lunar birth-date input with deterministic, testable code. It is not an interpretation or fortune-telling layer.
 
-v0.3.1 hardens the default Korean lunar-to-solar conversion provider added in v0.3.0. The calculation policy remains `manse-policy-v0.1`; the pillar formulas and solar-term dataset are unchanged from v0.2.3.
+v0.4.0 adds structured original-chart derived data from already calculated pillars. The calculation policy remains `manse-policy-v0.1`; the pillar formulas and solar-term dataset are unchanged from v0.2.3.
 
 The calculation logic lives in `packages/manse-engine`. The Next.js app in `apps/web` calls the engine through `POST /api/saju/calculate` and contains no pillar calculation logic.
 
@@ -18,6 +18,7 @@ The calculation logic lives in `packages/manse-engine`. The Next.js app in `apps
 - Continuous supported solar-term range from 1950 through 2050.
 - Day pillar by Julian Day Number.
 - Hour pillar by two-hour branch windows.
+- Original-chart derived data: day master, element/yin-yang metadata, hidden stems, ten gods, and counts.
 - Basis/debug metadata for each pillar.
 - Explicit `engineVersion`, `policyVersion`, `dataVersion`, and provider metadata in every result.
 - Strict input schema validation so unknown request fields fail instead of being silently discarded.
@@ -26,6 +27,7 @@ The calculation logic lives in `packages/manse-engine`. The Next.js app in `apps
 
 - LLM or AI calculation.
 - Saju interpretation text.
+- Strength, balance, favorable/unfavorable, yongsin, geokguk, daewoon, sewoon, or shinsal.
 - Lunar conversion outside the default provider range.
 - Solar-term data outside the certified 1950-2050 range.
 - Mean or true solar-time adjustment.
@@ -40,6 +42,8 @@ The calculation logic lives in `packages/manse-engine`. The Next.js app in `apps
 
 ## Data
 
-The default v0.3.1 engine still uses `data/solar-terms/solar-terms.v0.2.2.json`. It includes exact UTC boundary datetimes for every engine-required major solar term from 1950 through 2050, plus the 1949 daeseol carryover row needed for early January 1950. The solar-term dataset remains `cross-checked`; see `docs/SOLAR_TERM_CERTIFICATION.md`.
+The default v0.4.0 engine still uses `data/solar-terms/solar-terms.v0.2.2.json`. It includes exact UTC boundary datetimes for every engine-required major solar term from 1950 through 2050, plus the 1949 daeseol carryover row needed for early January 1950. The solar-term dataset remains `cross-checked`; see `docs/SOLAR_TERM_CERTIFICATION.md`.
 
 The default calendar provider uses exact dependency `korean-lunar-calendar@0.4.0` for offline Korean lunar/solar conversion. Runtime calculation consumes the installed local package and internal solar-term data only; it does not call public calendar APIs inside `calculateSaju`.
+
+The derived original-chart layer is data-only. It consumes the calculated pillars and emits `original-chart-derived-v0.4.0`.

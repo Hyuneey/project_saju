@@ -3,12 +3,15 @@ import { describe, expect, it } from "vitest";
 import {
   TableCalendarDataProvider,
   TableSolarTermProvider,
+  ORIGINAL_CHART_DERIVED_DATA_VERSION,
   calculateHourPillar,
   calculateSaju,
   ganjiIndexToResult,
   getHourBranchIndex,
   julianDayNumber,
-  mod
+  mod,
+  stemMetadata,
+  tenGodFor
 } from ".";
 import { SOLAR_TERM_DATASET } from "./solarTermsData";
 import type { SolarTerm, SolarTermDataset } from "./types";
@@ -94,6 +97,136 @@ describe("day pillar", () => {
 
     expect(julianDay).toBe(2457288);
     expect(ganji.ganji).toBe("신축");
+  });
+});
+
+describe("original chart derived data", () => {
+  it("maps all ten gods relative to a day master without interpretation", () => {
+    const dayMaster = stemMetadata(0);
+
+    expect(tenGodFor(dayMaster, stemMetadata(0))).toBe("biJian");
+    expect(tenGodFor(dayMaster, stemMetadata(1))).toBe("jieCai");
+    expect(tenGodFor(dayMaster, stemMetadata(2))).toBe("shiShen");
+    expect(tenGodFor(dayMaster, stemMetadata(3))).toBe("shangGuan");
+    expect(tenGodFor(dayMaster, stemMetadata(4))).toBe("pianCai");
+    expect(tenGodFor(dayMaster, stemMetadata(5))).toBe("zhengCai");
+    expect(tenGodFor(dayMaster, stemMetadata(6))).toBe("pianGuan");
+    expect(tenGodFor(dayMaster, stemMetadata(7))).toBe("zhengGuan");
+    expect(tenGodFor(dayMaster, stemMetadata(8))).toBe("pianYin");
+    expect(tenGodFor(dayMaster, stemMetadata(9))).toBe("zhengYin");
+  });
+
+  it("derives day master, stem/branch metadata, hidden stems, and counts from calculated pillars", async () => {
+    const result = await calculateSaju(baseInput({ birthDate: "2015-09-22", birthTime: "09:30" }));
+
+    expect(result.derived.dataVersion).toBe(ORIGINAL_CHART_DERIVED_DATA_VERSION);
+    expect(result.derived.dayMaster).toMatchObject({
+      index: 7,
+      romanization: "sin",
+      element: "metal",
+      yinYang: "yin"
+    });
+    expect(result.derived.pillars.day?.stem).toMatchObject({
+      index: 7,
+      tenGod: null,
+      isDayMaster: true
+    });
+    expect(result.derived.pillars.hour?.stem).toMatchObject({
+      index: 9,
+      element: "water",
+      yinYang: "yin",
+      tenGod: "shiShen",
+      isDayMaster: false
+    });
+    expect(result.derived.pillars.hour?.branch).toMatchObject({
+      index: 5,
+      element: "fire",
+      yinYang: "yin",
+      tenGod: "pianGuan"
+    });
+    expect(result.derived.pillars.day?.hiddenStems).toEqual([
+      expect.objectContaining({ index: 9, role: "residual", tenGod: "shiShen" }),
+      expect.objectContaining({ index: 7, role: "middle", tenGod: "biJian" }),
+      expect.objectContaining({ index: 5, role: "main", tenGod: "pianYin" })
+    ]);
+
+    expect(result.derived.counts.elements.visible).toEqual({
+      wood: 2,
+      fire: 1,
+      earth: 2,
+      metal: 2,
+      water: 1
+    });
+    expect(result.derived.counts.elements.hiddenStems).toEqual({
+      wood: 1,
+      fire: 2,
+      earth: 3,
+      metal: 4,
+      water: 1
+    });
+    expect(result.derived.counts.elements.totalWithHiddenStems).toEqual({
+      wood: 3,
+      fire: 3,
+      earth: 5,
+      metal: 6,
+      water: 2
+    });
+    expect(result.derived.counts.yinYang.visible).toEqual({ yang: 0, yin: 8 });
+    expect(result.derived.counts.yinYang.hiddenStems).toEqual({ yang: 4, yin: 7 });
+    expect(result.derived.counts.yinYang.totalWithHiddenStems).toEqual({ yang: 4, yin: 15 });
+    expect(result.derived.counts.tenGods.visibleStems).toMatchObject({
+      shiShen: 1,
+      pianCai: 2
+    });
+    expect(result.derived.counts.tenGods.hiddenStems).toMatchObject({
+      biJian: 2,
+      jieCai: 2,
+      shiShen: 1,
+      pianCai: 1,
+      pianGuan: 1,
+      zhengGuan: 1,
+      pianYin: 2,
+      zhengYin: 1
+    });
+    expect(result.derived.counts.tenGods.totalWithHiddenStems).toMatchObject({
+      biJian: 3,
+      jieCai: 2,
+      shiShen: 2,
+      shangGuan: 0,
+      pianCai: 3,
+      zhengCai: 0,
+      pianGuan: 2,
+      zhengGuan: 1,
+      pianYin: 4,
+      zhengYin: 1
+    });
+  });
+
+  it("omits hour derived data when birth time is unknown", async () => {
+    const result = await calculateSaju({
+      ...baseInput({ birthDate: "2015-09-22" }),
+      birthTime: undefined,
+      birthTimeUnknown: true
+    });
+
+    expect(result.pillars.hour).toBeNull();
+    expect(result.derived.pillars.hour).toBeNull();
+    expect(result.derived.counts.elements.visible).toEqual({
+      wood: 2,
+      fire: 0,
+      earth: 2,
+      metal: 2,
+      water: 0
+    });
+    expect(result.derived.counts.yinYang.visible).toEqual({ yang: 0, yin: 6 });
+  });
+
+  it("does not emit interpretation judgment fields in derived data", async () => {
+    const result = await calculateSaju(baseInput({ birthDate: "2015-09-22", birthTime: "09:30" }));
+
+    expect(JSON.stringify(result.derived)).not.toMatch(
+      /strong|weak|balanced|imbalanced|favorable|unfavorable|good|bad|yongsin|geokguk|daewoon|sewoon|shinsal/i
+    );
   });
 });
 
@@ -380,7 +513,7 @@ describe("validation and missing data", () => {
   it("returns engineVersion, policyVersion, dataVersion, normalized date, and applied options", async () => {
     const result = await calculateSaju(baseInput({ birthDate: "2015-09-22" }));
 
-    expect(result.metadata.engineVersion).toBe("0.3.1");
+    expect(result.metadata.engineVersion).toBe("0.4.0");
     expect(result.metadata.policyVersion).toBe("manse-policy-v0.1");
     expect(result.metadata.dataVersion).toContain("calendar:calendar-jdn-korean-lunar-0.3.1");
     expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.2");

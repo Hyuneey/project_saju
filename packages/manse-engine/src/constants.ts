@@ -1,4 +1,4 @@
-export const ENGINE_VERSION = "0.3.1";
+export const ENGINE_VERSION = "0.4.0";
 export const POLICY_VERSION = "manse-policy-v0.1";
 export const DEFAULT_TIMEZONE = "Asia/Seoul";
 

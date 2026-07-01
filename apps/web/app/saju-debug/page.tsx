@@ -80,7 +80,7 @@ export default function SajuDebugPage() {
     <main className="debug-page">
       <header className="page-header">
         <h1>사주 계산 검증</h1>
-        <span>Manse Engine v0.3.1</span>
+        <span>Manse Engine v0.4.0</span>
       </header>
 
       <div className="workspace">
@@ -200,6 +200,7 @@ export default function SajuDebugPage() {
                 <Pillar label="Day" value={result.pillars.day} />
                 <Pillar label="Hour" value={result.pillars.hour} />
               </div>
+              <JsonBlock title="Derived" value={result.derived} />
               <JsonBlock title="Basis" value={result.basis} />
               <JsonBlock title="Warnings" value={result.metadata.warnings} />
               <JsonBlock title="Metadata" value={result.metadata} />
