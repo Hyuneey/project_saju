@@ -1,6 +1,6 @@
 {
   "name": "Korean lunar conversion provider fixture",
-  "dataVersion": "calendar-jdn-korean-lunar-0.3.0",
+  "dataVersion": "calendar-jdn-korean-lunar-0.3.1",
   "provider": {
     "name": "KoreanLunarCalendarProvider",
     "package": "korean-lunar-calendar",
@@ -12,6 +12,12 @@
       "name": "Korea Astronomy and Space Science Institute lunar/solar conversion page",
       "url": "https://astro.kasi.re.kr/life/pageView/8",
       "notes": "Official reference page documents Korean lunar/solar conversion UI, leap-month option, and solar conversion coverage through 2050-12-31."
+    },
+    {
+      "name": "Korea Astronomy and Space Science Institute monthly lunar/solar table",
+      "url": "https://astro.kasi.re.kr/life/pageView/5",
+      "retrievedAt": "2026-07-01",
+      "notes": "Monthly table page rendered 2026-07 rows used as KASI comparison examples."
     },
     {
       "name": "korean-lunar-calendar README",
@@ -32,6 +38,7 @@
   "examples": [
     {
       "name": "KASI v0.1 solar fixture back-conversion",
+      "source": "KASI historical fixture",
       "lunar": {
         "year": 2015,
         "month": 8,
@@ -45,7 +52,53 @@
       }
     },
     {
+      "name": "KASI monthly table 2026-07-01",
+      "source": "KASI monthly lunar/solar table",
+      "lunar": {
+        "year": 2026,
+        "month": 5,
+        "day": 17,
+        "leapMonth": false
+      },
+      "solar": {
+        "year": 2026,
+        "month": 7,
+        "day": 1
+      }
+    },
+    {
+      "name": "KASI monthly table 2026-07 lunar month start",
+      "source": "KASI monthly lunar/solar table",
+      "lunar": {
+        "year": 2026,
+        "month": 6,
+        "day": 1,
+        "leapMonth": false
+      },
+      "solar": {
+        "year": 2026,
+        "month": 7,
+        "day": 14
+      }
+    },
+    {
+      "name": "KASI monthly table 2026-07-31",
+      "source": "KASI monthly lunar/solar table",
+      "lunar": {
+        "year": 2026,
+        "month": 6,
+        "day": 18,
+        "leapMonth": false
+      },
+      "solar": {
+        "year": 2026,
+        "month": 7,
+        "day": 31
+      }
+    },
+    {
       "name": "README leap lunar example",
+      "source": "korean-lunar-calendar README",
       "lunar": {
         "year": 2017,
         "month": 5,
@@ -60,6 +113,7 @@
     },
     {
       "name": "README historical example",
+      "source": "korean-lunar-calendar README",
       "lunar": {
         "year": 1956,
         "month": 1,

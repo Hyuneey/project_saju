@@ -2,9 +2,9 @@
 
 Policy version: `manse-policy-v0.1`
 
-Engine release: `0.3.0`
+Engine release: `0.3.1`
 
-v0.3.0 keeps the pillar formulas from v0.1. It adds Korean lunar input normalization before calculation; once normalized, all pillars are calculated from the resulting solar Gregorian date/time.
+v0.3.1 keeps the pillar formulas from v0.1. It hardens Korean lunar input normalization before calculation; once normalized, all pillars are calculated from the resulting solar Gregorian date/time.
 
 ## Input Calendar Normalization
 
@@ -107,11 +107,11 @@ If `birthTimeUnknown` is true, the hour pillar is `null`.
 
 ## dayBoundaryPolicy
 
-v0.3.0 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.3.0 emits a warning and still calculates with `midnight`.
+v0.3.1 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.3.1 emits a warning and still calculates with `midnight`.
 
 ## solarTimePolicy
 
-v0.3.0 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.3.0 emits a warning and still calculates with civil time.
+v0.3.1 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.3.1 emits a warning and still calculates with civil time.
 
 ## dataVersion
 
@@ -119,7 +119,9 @@ Every result includes `metadata.engineVersion`, `metadata.policyVersion`, and `m
 
 The default value combines the calendar provider and solar-term provider versions:
 
-`calendar:calendar-jdn-korean-lunar-0.3.0;solarTerms:solar-terms-v0.2.2`
+`calendar:calendar-jdn-korean-lunar-0.3.1;solarTerms:solar-terms-v0.2.2`
+
+`metadata.providers.calendar` also exposes `KoreanLunarCalendarProvider`, source package `korean-lunar-calendar`, source version `0.4.0`, supported conversion ranges, and `runtimeNetwork: false`.
 
 The solar-term dataset is table-driven and supports 1950 through 2050. Unsupported years fail with `SOLAR_TERM_DATA_MISSING`.
 
@@ -127,12 +129,12 @@ The solar-term dataset is table-driven and supports 1950 through 2050. Unsupport
 
 - Default lunar conversion is limited to the Korean lunar provider range documented above.
 - Default solar-term coverage is limited to rows in `data/solar-terms/solar-terms.v0.2.2.json`.
-- Mean solar time and true solar time are not applied in v0.3.0.
-- `early_zi` and `split_zi` day boundary policies are accepted but not applied in v0.3.0.
+- Mean solar time and true solar time are not applied in v0.3.1.
+- `early_zi` and `split_zi` day boundary policies are accepted but not applied in v0.3.1.
 - The v0.2.2 solar-term dataset is `cross-checked`, not production-certified.
 
 ## Data Sources
 
 The checked-in v0.2.2 solar-term rows are generated with `astronomy-engine` `SearchSunLongitude`, which searches for the apparent Sun ecliptic longitude boundary. The generated 2014-2026 overlap is checked against the v0.2.1 public UTC table import within 90 seconds, and v0.2.3 adds a limited Chinese Calendar Online 2025-2028 comparison fixture. Runtime code consumes only the generated internal dataset and does not call live astronomy APIs.
 
-The default lunar conversion provider is `korean-lunar-calendar@0.4.0`. It is used locally and offline at runtime; `calculateSaju` does not call live public calendar APIs.
+The default lunar conversion provider is exact dependency `korean-lunar-calendar@0.4.0`. It is used locally and offline at runtime; `calculateSaju` does not call live public calendar APIs.

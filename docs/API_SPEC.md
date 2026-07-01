@@ -73,6 +73,10 @@ interface CalculateSajuResult {
     engineVersion: string;
     policyVersion: string;
     dataVersion: string;
+    providers: {
+      calendar: CalendarProviderMetadata;
+      solarTerms: SolarTermProviderMetadata;
+    };
     appliedOptions: {
       yearBoundary: "lichun";
       monthBoundary: "solar_terms";
@@ -84,7 +88,27 @@ interface CalculateSajuResult {
 }
 ```
 
-`engineVersion` identifies the package release. `policyVersion` identifies the calculation policy. v0.3.0 still uses `manse-policy-v0.1` because the pillar formulas are unchanged.
+`engineVersion` identifies the package release. `policyVersion` identifies the calculation policy. v0.3.1 still uses `manse-policy-v0.1` because the pillar formulas are unchanged.
+
+Default calendar provider metadata shape:
+
+```ts
+interface CalendarProviderMetadata {
+  name: "KoreanLunarCalendarProvider";
+  dataVersion: "calendar-jdn-korean-lunar-0.3.1";
+  source: {
+    packageName: "korean-lunar-calendar";
+    version: "0.4.0";
+    url: "https://github.com/usingsky/korean_lunar_calendar_js";
+    license: "MIT";
+  };
+  supportedRange: {
+    solarToLunar: { from: PlainDateLike; to: PlainDateLike };
+    lunarToSolar: { from: PlainDateLike; to: PlainDateLike };
+  };
+  runtimeNetwork: false;
+}
+```
 
 ## Providers
 
@@ -105,7 +129,7 @@ interface SolarTermProvider {
 
 The default providers are local and deterministic. They do not call live APIs at runtime.
 
-- Default calendar provider: `calendar-jdn-korean-lunar-0.3.0`, backed by `korean-lunar-calendar@0.4.0`.
+- Default calendar provider: `calendar-jdn-korean-lunar-0.3.1`, backed by exact dependency `korean-lunar-calendar@0.4.0`.
 - Default solar-term provider: `solar-terms-v0.2.2`, backed by the generated internal module from `data/solar-terms/solar-terms.v0.2.2.json`.
 
 Default lunar conversion supported ranges:
@@ -114,6 +138,8 @@ Default lunar conversion supported ranges:
 - Lunar input to solar: `1000-01-01` through `2050-11-18`
 
 Pillar calculation also requires the normalized solar date to be covered by the default solar-term dataset, currently 1950 through 2050 with the required 1949 carryover row.
+
+`metadata.providers.calendar` exposes the default lunar provider name, data version, source package, source version, supported ranges, and `runtimeNetwork: false`.
 
 ## HTTP Route
 
@@ -127,7 +153,7 @@ Error status mapping:
 - `422`: missing, invalid, or unsupported provider data such as `SOLAR_TERM_DATA_MISSING`, `SOLAR_TERM_DATA_INVALID`, `LUNAR_CONVERSION_UNAVAILABLE`, `OUT_OF_SUPPORTED_RANGE`
 - `500`: `INTERNAL_CALCULATION_ERROR`
 
-`LUNAR_CONVERSION_UNAVAILABLE` remains a typed provider error for custom providers that do not support conversion. The default v0.3.0 provider supports Korean lunar conversion inside the documented range.
+`LUNAR_CONVERSION_UNAVAILABLE` remains a typed provider error for custom providers that do not support conversion. The default v0.3.1 provider supports Korean lunar conversion inside the documented range.
 
 Example lunar out-of-range response:
 
@@ -152,5 +178,5 @@ Example lunar out-of-range response:
 
 Unsupported forward-compatible policies:
 
-- `dayBoundaryPolicy: "early_zi"` and `"split_zi"` are accepted, but v0.3.0 calculates with `midnight` and emits `DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED`.
-- `solarTimePolicy: "mean_solar_time"` and `"true_solar_time"` are accepted, but v0.3.0 calculates with `civil_time`, sets `solarTimeApplied: false`, and emits `SOLAR_TIME_POLICY_NOT_IMPLEMENTED`.
+- `dayBoundaryPolicy: "early_zi"` and `"split_zi"` are accepted, but v0.3.1 calculates with `midnight` and emits `DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED`.
+- `solarTimePolicy: "mean_solar_time"` and `"true_solar_time"` are accepted, but v0.3.1 calculates with `civil_time`, sets `solarTimeApplied: false`, and emits `SOLAR_TIME_POLICY_NOT_IMPLEMENTED`.

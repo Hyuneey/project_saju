@@ -9,12 +9,14 @@ import type {
   CalculateSajuResult,
   CalculationWarning,
   CalendarDataProvider,
+  CalendarProviderMetadata,
   GanjiResult,
   NormalizedCalculateSajuInput,
   PlainDateLike,
   Providers,
   SolarTerm,
-  SolarTermProvider
+  SolarTermProvider,
+  SolarTermProviderMetadata
 } from "./types";
 
 interface NormalizedDateTime {
@@ -66,6 +68,10 @@ export async function calculateSaju(input: CalculateSajuInput, providers: Provid
       engineVersion: ENGINE_VERSION,
       policyVersion: POLICY_VERSION,
       dataVersion: dataVersion(calendarProvider, solarTermProvider),
+      providers: {
+        calendar: calendarProviderMetadata(calendarProvider),
+        solarTerms: solarTermProviderMetadata(solarTermProvider)
+      },
       appliedOptions: normalized.input.options,
       warnings: normalized.warnings
     }
@@ -285,4 +291,21 @@ function dataVersion(calendarProvider: CalendarDataProvider, solarTermProvider: 
     `calendar:${calendarProvider.dataVersion ?? "custom-provider"}`,
     `solarTerms:${solarTermProvider.dataVersion ?? "custom-provider"}`
   ].join(";");
+}
+
+function calendarProviderMetadata(provider: CalendarDataProvider): CalendarProviderMetadata {
+  return provider.metadata ?? {
+    name: "custom-calendar-provider",
+    dataVersion: provider.dataVersion ?? "custom-provider",
+    source: {
+      name: "custom-provider"
+    }
+  };
+}
+
+function solarTermProviderMetadata(provider: SolarTermProvider): SolarTermProviderMetadata {
+  return provider.metadata ?? {
+    name: "custom-solar-term-provider",
+    dataVersion: provider.dataVersion ?? "custom-provider"
+  };
 }

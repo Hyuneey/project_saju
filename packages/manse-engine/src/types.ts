@@ -92,6 +92,10 @@ export interface CalculateSajuResult {
     engineVersion: string;
     policyVersion: string;
     dataVersion: string;
+    providers: {
+      calendar: CalendarProviderMetadata;
+      solarTerms: SolarTermProviderMetadata;
+    };
     appliedOptions: NormalizedCalculateSajuInput["options"];
     warnings: CalculationWarning[];
   };
@@ -140,6 +144,7 @@ export interface SolarTermRecord {
 
 export interface CalendarDataProvider {
   readonly dataVersion?: string;
+  readonly metadata?: CalendarProviderMetadata;
   getJulianDay(date: PlainDateLike): number | Promise<number>;
   solarToLunar(date: PlainDateLike): LunarDate | Promise<LunarDate>;
   lunarToSolar(date: LunarDate): PlainDateLike | Promise<PlainDateLike>;
@@ -147,6 +152,7 @@ export interface CalendarDataProvider {
 
 export interface SolarTermProvider {
   readonly dataVersion?: string;
+  readonly metadata?: SolarTermProviderMetadata;
   getTermsForGregorianYear(year: number): SolarTerm[] | Promise<SolarTerm[]>;
   getLichunForGregorianYear(year: number): SolarTerm | Promise<SolarTerm>;
 }
@@ -154,4 +160,43 @@ export interface SolarTermProvider {
 export interface Providers {
   calendar?: CalendarDataProvider;
   solarTerms?: SolarTermProvider;
+}
+
+export interface CalendarProviderMetadata {
+  name: string;
+  dataVersion: string;
+  source: {
+    name: string;
+    packageName?: string;
+    version?: string;
+    url?: string;
+    license?: string;
+  };
+  supportedRange?: {
+    solarToLunar?: DateRange;
+    lunarToSolar?: DateRange;
+  };
+  runtimeNetwork?: boolean;
+  notes?: string;
+}
+
+export interface SolarTermProviderMetadata {
+  name: string;
+  dataVersion: string;
+  source?: {
+    name: string;
+    url?: string;
+    license?: string;
+  };
+  supportedGregorianYears?: {
+    from: number;
+    to: number;
+  };
+  certificationLevel?: SolarTermCertificationLevel;
+  runtimeNetwork?: boolean;
+}
+
+export interface DateRange {
+  from: PlainDateLike;
+  to: PlainDateLike;
 }

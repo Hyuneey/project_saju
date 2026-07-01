@@ -5,10 +5,13 @@ import { julianDayNumber } from "./julian";
 import { SOLAR_TERM_DATASET } from "./solarTermsData";
 import type {
   CalendarDataProvider,
+  CalendarProviderMetadata,
+  DateRange,
   LunarDate,
   PlainDateLike,
   SolarTerm,
   SolarTermDataset,
+  SolarTermProviderMetadata,
   SolarTermProvider
 } from "./types";
 
@@ -28,7 +31,10 @@ const CHRONOLOGICAL_TERM_KEYS = [
 ] as const;
 
 const KOREAN_LUNAR_PROVIDER = "KoreanLunarCalendarProvider";
-const KOREAN_LUNAR_SOURCE = "korean-lunar-calendar@0.4.0";
+const KOREAN_LUNAR_PACKAGE_NAME = "korean-lunar-calendar";
+const KOREAN_LUNAR_PACKAGE_VERSION = "0.4.0";
+const KOREAN_LUNAR_SOURCE = `${KOREAN_LUNAR_PACKAGE_NAME}@${KOREAN_LUNAR_PACKAGE_VERSION}`;
+const KOREAN_LUNAR_DATA_VERSION = "calendar-jdn-korean-lunar-0.3.1";
 const SUPPORTED_SOLAR_RANGE = {
   from: { year: 1000, month: 2, day: 13 },
   to: { year: 2050, month: 12, day: 31 }
@@ -38,16 +44,51 @@ const SUPPORTED_LUNAR_RANGE = {
   to: { year: 2050, month: 11, day: 18 }
 } as const;
 
+export interface KoreanLunarCalendarAdapter {
+  setSolarDate(year: number, month: number, day: number): boolean;
+  setLunarDate(year: number, month: number, day: number, intercalation: boolean): boolean;
+  getSolarCalendar(): PlainDateLike;
+  getLunarCalendar(): PlainDateLike & { intercalation?: boolean };
+}
+
+export interface TableCalendarDataProviderOptions {
+  createKoreanLunarCalendar?: () => KoreanLunarCalendarAdapter;
+}
+
 export class TableCalendarDataProvider implements CalendarDataProvider {
-  readonly dataVersion = "calendar-jdn-korean-lunar-0.3.0";
+  readonly dataVersion = KOREAN_LUNAR_DATA_VERSION;
+  readonly metadata: CalendarProviderMetadata = {
+    name: KOREAN_LUNAR_PROVIDER,
+    dataVersion: KOREAN_LUNAR_DATA_VERSION,
+    source: {
+      name: "Korean lunar calendar conversion package",
+      packageName: KOREAN_LUNAR_PACKAGE_NAME,
+      version: KOREAN_LUNAR_PACKAGE_VERSION,
+      url: "https://github.com/usingsky/korean_lunar_calendar_js",
+      license: "MIT"
+    },
+    supportedRange: {
+      solarToLunar: SUPPORTED_SOLAR_RANGE,
+      lunarToSolar: SUPPORTED_LUNAR_RANGE
+    },
+    runtimeNetwork: false,
+    notes: "Creates a fresh stateful converter instance for each conversion call."
+  };
+
+  private readonly createKoreanLunarCalendar: () => KoreanLunarCalendarAdapter;
+
+  constructor(options: TableCalendarDataProviderOptions = {}) {
+    this.createKoreanLunarCalendar = options.createKoreanLunarCalendar ?? (() => new KoreanLunarCalendar());
+  }
 
   getJulianDay(date: PlainDateLike): number {
     return julianDayNumber(date);
   }
 
   solarToLunar(date: PlainDateLike): LunarDate {
+    assertDateParts(date, "solar");
     assertDateInRange(date, SUPPORTED_SOLAR_RANGE, "solar");
-    const calendar = new KoreanLunarCalendar();
+    const calendar = this.createKoreanLunarCalendar();
 
     if (!calendar.setSolarDate(date.year, date.month, date.day)) {
       throw new ManseError("INVALID_DATE", "Solar date cannot be converted to a Korean lunar date.", {
@@ -67,8 +108,9 @@ export class TableCalendarDataProvider implements CalendarDataProvider {
   }
 
   lunarToSolar(date: LunarDate): PlainDateLike {
+    assertDateParts(date, "lunar");
     assertDateInRange(date, SUPPORTED_LUNAR_RANGE, "lunar");
-    const calendar = new KoreanLunarCalendar();
+    const calendar = this.createKoreanLunarCalendar();
 
     if (!calendar.setLunarDate(date.year, date.month, date.day, date.leapMonth)) {
       throw new ManseError("INVALID_DATE", "Korean lunar date cannot be converted to a solar date.", {
@@ -78,12 +120,18 @@ export class TableCalendarDataProvider implements CalendarDataProvider {
       });
     }
 
-    return calendar.getSolarCalendar();
+    const solar = calendar.getSolarCalendar();
+    return {
+      year: solar.year,
+      month: solar.month,
+      day: solar.day
+    };
   }
 }
 
 export class TableSolarTermProvider implements SolarTermProvider {
   readonly dataVersion: string;
+  readonly metadata: SolarTermProviderMetadata;
   private readonly table: Record<string, SolarTerm[]>;
   private readonly supportedGregorianYears?: SolarTermDataset["supportedGregorianYears"];
 
@@ -92,12 +140,29 @@ export class TableSolarTermProvider implements SolarTermProvider {
       assertCertifiedSolarTermDataset(source);
       this.table = solarTermDatasetToTable(source);
       this.dataVersion = source.dataVersion;
+      this.metadata = {
+        name: "TableSolarTermProvider",
+        dataVersion: source.dataVersion,
+        source: {
+          name: source.source.name,
+          url: source.source.url,
+          license: source.source.license
+        },
+        supportedGregorianYears: source.supportedGregorianYears,
+        certificationLevel: source.certificationLevel,
+        runtimeNetwork: false
+      };
       this.supportedGregorianYears = source.supportedGregorianYears;
       return;
     }
 
     this.table = source;
     this.dataVersion = dataVersion ?? "custom-solar-term-table";
+    this.metadata = {
+      name: "TableSolarTermProvider",
+      dataVersion: this.dataVersion,
+      runtimeNetwork: false
+    };
   }
 
   getTermsForGregorianYear(year: number): SolarTerm[] {
@@ -253,7 +318,7 @@ function utcInstantToPlainDateTime(value: string): string {
 
 function assertDateInRange(
   date: PlainDateLike,
-  range: { from: PlainDateLike; to: PlainDateLike },
+  range: DateRange,
   calendarType: "solar" | "lunar"
 ): void {
   if (compareDate(date, range.from) < 0 || compareDate(date, range.to) > 0) {
@@ -263,6 +328,17 @@ function assertDateInRange(
       calendarType,
       requestedDate: date,
       supportedRange: range
+    });
+  }
+}
+
+function assertDateParts(date: PlainDateLike, calendarType: "solar" | "lunar"): void {
+  if (!Number.isInteger(date.year) || !Number.isInteger(date.month) || !Number.isInteger(date.day)) {
+    throw new ManseError("INVALID_DATE", `${calendarType} date parts must be integers.`, {
+      provider: KOREAN_LUNAR_PROVIDER,
+      source: KOREAN_LUNAR_SOURCE,
+      calendarType,
+      requestedDate: date
     });
   }
 }

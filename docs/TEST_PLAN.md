@@ -9,7 +9,7 @@ corepack pnpm verify
 ## Golden Fixtures
 
 - `data/fixtures/kasi-2015-09-22.json` records the KASI sample date, Julian Day Number `2457288`, and expected day ganji.
-- `data/fixtures/lunar-conversion-v0.3.0.json` records Korean lunar/solar provider examples used by v0.3.0 tests and documentation.
+- `data/fixtures/lunar-conversion-v0.3.1.json` records Korean lunar/solar provider examples used by v0.3.1 tests and documentation.
 - `data/solar-terms/solar-terms.v0.2.2.json` is the canonical versioned solar-term dataset used to generate the default engine data module.
 
 ## Required Tests
@@ -24,8 +24,13 @@ corepack pnpm verify
 - Hour stem formula.
 - `birthTimeUnknown` returns `hour: null`.
 - Lunar input without `lunarLeapMonth` fails.
+- `korean-lunar-calendar` is pinned to exact version `0.4.0` in package and lock files.
+- `corepack pnpm check:lunar-provider` validates dependency pinning and all checked-in lunar conversion fixture examples.
 - Default Korean lunar input converts to the same result as the equivalent solar input.
 - Korean leap lunar month input converts correctly.
+- KASI monthly lunar/solar table examples convert both directions.
+- Default lunar provider metadata exposes source package, source version, supported ranges, and `runtimeNetwork: false`.
+- Default lunar provider creates a fresh stateful converter instance for each conversion call.
 - Impossible Korean lunar leap-month dates fail with `INVALID_DATE`.
 - Korean lunar provider out-of-range dates fail with `OUT_OF_SUPPORTED_RANGE`.
 - Default provider can convert solar dates back to Korean lunar dates.
@@ -63,4 +68,4 @@ When comparing with external manse calendars:
 5. Confirm whether mean or true solar time is applied.
 6. Compare intermediate basis values before comparing final pillars.
 
-Differences can be legitimate when any policy differs. v0.3.0 reports policy, data version, and basis values so those differences are auditable.
+Differences can be legitimate when any policy differs. v0.3.1 reports policy, data version, provider metadata, and basis values so those differences are auditable.

@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import {
   TableCalendarDataProvider,
@@ -184,7 +185,7 @@ describe("validation and missing data", () => {
 
     expect(fromLunarInput.normalizedDateTime.solarDate).toBe("2015-09-22");
     expect(fromLunarInput.pillars).toEqual(fromSolarInput.pillars);
-    expect(fromLunarInput.metadata.dataVersion).toContain("calendar:calendar-jdn-korean-lunar-0.3.0");
+    expect(fromLunarInput.metadata.dataVersion).toContain("calendar:calendar-jdn-korean-lunar-0.3.1");
   });
 
   it("converts Korean leap lunar months", async () => {
@@ -248,11 +249,110 @@ describe("validation and missing data", () => {
       month: 9,
       day: 22
     });
+    expect(provider.solarToLunar({ year: 2026, month: 7, day: 1 })).toEqual({
+      year: 2026,
+      month: 5,
+      day: 17,
+      leapMonth: false
+    });
+    expect(provider.lunarToSolar({ year: 2026, month: 6, day: 1, leapMonth: false })).toEqual({
+      year: 2026,
+      month: 7,
+      day: 14
+    });
+    expect(provider.solarToLunar({ year: 2026, month: 7, day: 31 })).toEqual({
+      year: 2026,
+      month: 6,
+      day: 18,
+      leapMonth: false
+    });
     expect(provider.lunarToSolar({ year: 1956, month: 1, day: 21, leapMonth: false })).toEqual({
       year: 1956,
       month: 3,
       day: 3
     });
+  });
+
+  it("uses a fresh stateful Korean lunar converter for every conversion call", () => {
+    let instanceCount = 0;
+    const provider = new TableCalendarDataProvider({
+      createKoreanLunarCalendar: () => {
+        instanceCount += 1;
+        let lastSet: "solar" | "lunar" | null = null;
+        return {
+          setSolarDate: () => {
+            lastSet = "solar";
+            return true;
+          },
+          setLunarDate: () => {
+            lastSet = "lunar";
+            return true;
+          },
+          getSolarCalendar: () => {
+            if (lastSet !== "lunar") {
+              throw new Error("expected lunar date to be set first");
+            }
+            return { year: 2015, month: 9, day: 22 };
+          },
+          getLunarCalendar: () => {
+            if (lastSet !== "solar") {
+              throw new Error("expected solar date to be set first");
+            }
+            return { year: 2015, month: 8, day: 10, intercalation: false };
+          }
+        };
+      }
+    });
+
+    expect(provider.solarToLunar({ year: 2015, month: 9, day: 22 })).toEqual({
+      year: 2015,
+      month: 8,
+      day: 10,
+      leapMonth: false
+    });
+    expect(provider.lunarToSolar({ year: 2015, month: 8, day: 10, leapMonth: false })).toEqual({
+      year: 2015,
+      month: 9,
+      day: 22
+    });
+    expect(instanceCount).toBe(2);
+  });
+
+  it("exposes default lunar provider source metadata", async () => {
+    const result = await calculateSaju({
+      ...baseInput({ birthDate: "2015-08-10" }),
+      calendarType: "lunar",
+      lunarLeapMonth: false
+    });
+
+    expect(result.metadata.providers.calendar).toMatchObject({
+      name: "KoreanLunarCalendarProvider",
+      dataVersion: "calendar-jdn-korean-lunar-0.3.1",
+      source: {
+        packageName: "korean-lunar-calendar",
+        version: "0.4.0",
+        license: "MIT"
+      },
+      supportedRange: {
+        solarToLunar: {
+          from: { year: 1000, month: 2, day: 13 },
+          to: { year: 2050, month: 12, day: 31 }
+        },
+        lunarToSolar: {
+          from: { year: 1000, month: 1, day: 1 },
+          to: { year: 2050, month: 11, day: 18 }
+        }
+      },
+      runtimeNetwork: false
+    });
+  });
+
+  it("pins the Korean lunar conversion dependency to an exact version", () => {
+    const packageJson = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
+      dependencies?: Record<string, string>;
+    };
+
+    expect(packageJson.dependencies?.["korean-lunar-calendar"]).toBe("0.4.0");
   });
 
   it("fails loudly when solar-term data is missing", async () => {
@@ -280,10 +380,16 @@ describe("validation and missing data", () => {
   it("returns engineVersion, policyVersion, dataVersion, normalized date, and applied options", async () => {
     const result = await calculateSaju(baseInput({ birthDate: "2015-09-22" }));
 
-    expect(result.metadata.engineVersion).toBe("0.3.0");
+    expect(result.metadata.engineVersion).toBe("0.3.1");
     expect(result.metadata.policyVersion).toBe("manse-policy-v0.1");
-    expect(result.metadata.dataVersion).toContain("calendar:calendar-jdn-korean-lunar-0.3.0");
+    expect(result.metadata.dataVersion).toContain("calendar:calendar-jdn-korean-lunar-0.3.1");
     expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.2");
+    expect(result.metadata.providers.solarTerms).toMatchObject({
+      dataVersion: "solar-terms-v0.2.2",
+      certificationLevel: "cross-checked",
+      supportedGregorianYears: { from: 1950, to: 2050 },
+      runtimeNetwork: false
+    });
     expect(result.metadata.appliedOptions).toEqual(baseOptions());
     expect(result.normalizedDateTime.solarDate).toBe("2015-09-22");
   });

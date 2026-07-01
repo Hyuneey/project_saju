@@ -19,11 +19,14 @@ export {
   defaultSolarTermProvider,
   solarTermDatasetToTable
 } from "./providers";
+export type { KoreanLunarCalendarAdapter, TableCalendarDataProviderOptions } from "./providers";
 export type {
   CalculateSajuInput,
   CalculateSajuResult,
   CalendarDataProvider,
+  CalendarProviderMetadata,
   CalculationWarning,
+  DateRange,
   DayBoundaryPolicy,
   GanjiResult,
   Gender,
@@ -34,6 +37,7 @@ export type {
   SolarTermCertificationLevel,
   SolarTermDataset,
   SolarTermName,
+  SolarTermProviderMetadata,
   SolarTermRecord,
   SolarTermProvider,
   SolarTimePolicy
