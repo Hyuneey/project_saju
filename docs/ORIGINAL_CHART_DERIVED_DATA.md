@@ -2,7 +2,7 @@
 
 ## Scope
 
-v0.4.0 adds `derived` to `calculateSaju` results.
+v0.4.1 stabilizes `derived` in `calculateSaju` results.
 
 This layer is a pure transformation of calculated pillars:
 
@@ -14,9 +14,15 @@ interpretation = natural language explanation, not implemented
 
 The derived layer must not generate chart judgments. It does not decide strength, weakness, balance, imbalance, favorable elements, unfavorable elements, yongsin, geokguk, daewoon, sewoon, shinsal, or fortune content.
 
-## Data Version
+## Versions
 
-`original-chart-derived-v0.4.0`
+Policy version:
+
+`derived-original-chart-v0.4.1`
+
+Data version:
+
+`original-chart-derived-v0.4.1`
 
 The derived data version is separate from:
 
@@ -24,6 +30,10 @@ The derived data version is separate from:
 - `policyVersion`
 - calendar provider data version
 - solar-term dataset version
+
+The canonical fixture is `data/fixtures/original-chart-derived-v0.4.1.json`.
+
+The full derived output shape is protected by a Vitest snapshot in `packages/manse-engine/src/__snapshots__/manse-engine.test.ts.snap`.
 
 ## Stem And Branch Metadata
 

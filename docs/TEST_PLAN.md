@@ -32,11 +32,14 @@ corepack pnpm verify
 - Default lunar provider metadata exposes source package, source version, supported ranges, and `runtimeNetwork: false`.
 - Default lunar provider creates a fresh stateful converter instance for each conversion call.
 - Original-chart derived data returns day master metadata.
+- Original-chart derived data includes `policyVersion: "derived-original-chart-v0.4.1"`.
 - Original-chart derived data returns stem and branch element/yin-yang metadata.
 - Original-chart derived data returns hidden stems.
 - Original-chart derived data maps ten gods relative to the day master.
 - Original-chart derived data returns five-element, yin-yang, and ten-god counts.
 - Original-chart derived data omits hour derived data when birth time is unknown.
+- Original-chart derived data matches `data/fixtures/original-chart-derived-v0.4.1.json`.
+- Original-chart derived data has a full-output Vitest snapshot.
 - Original-chart derived data contains no interpretive judgment fields.
 - Impossible Korean lunar leap-month dates fail with `INVALID_DATE`.
 - Korean lunar provider out-of-range dates fail with `OUT_OF_SUPPORTED_RANGE`.
@@ -75,4 +78,4 @@ When comparing with external manse calendars:
 5. Confirm whether mean or true solar time is applied.
 6. Compare intermediate basis values before comparing final pillars.
 
-Differences can be legitimate when any policy differs. v0.4.0 reports policy, data version, provider metadata, derived data version, and basis values so those differences are auditable.
+Differences can be legitimate when any policy differs. v0.4.1 reports policy, data version, provider metadata, derived policy/data versions, and basis values so those differences are auditable.

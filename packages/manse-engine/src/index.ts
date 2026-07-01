@@ -2,6 +2,7 @@ export { calculateSaju } from "./calculateSaju";
 export { BRANCHES, DEFAULT_TIMEZONE, ENGINE_VERSION, MONTH_BOUNDARIES, POLICY_VERSION, STEMS } from "./constants";
 export {
   ORIGINAL_CHART_DERIVED_DATA_VERSION,
+  ORIGINAL_CHART_DERIVED_POLICY_VERSION,
   branchMetadata,
   deriveOriginalChart,
   stemMetadata,

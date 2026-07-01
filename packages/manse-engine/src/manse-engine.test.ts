@@ -4,6 +4,7 @@ import {
   TableCalendarDataProvider,
   TableSolarTermProvider,
   ORIGINAL_CHART_DERIVED_DATA_VERSION,
+  ORIGINAL_CHART_DERIVED_POLICY_VERSION,
   calculateHourPillar,
   calculateSaju,
   ganjiIndexToResult,
@@ -15,6 +16,20 @@ import {
 } from ".";
 import { SOLAR_TERM_DATASET } from "./solarTermsData";
 import type { SolarTerm, SolarTermDataset } from "./types";
+
+const originalChartDerivedFixture = JSON.parse(
+  readFileSync(new URL("../../../data/fixtures/original-chart-derived-v0.4.1.json", import.meta.url), "utf8")
+) as {
+  policyVersion: string;
+  dataVersion: string;
+  input: Parameters<typeof calculateSaju>[0];
+  expect: {
+    dayMaster: Record<string, unknown>;
+    pillarTenGods: Record<string, string | null>;
+    dayHiddenStems: Array<{ stemIndex: number; role: string; tenGod: string }>;
+    counts: Record<string, unknown>;
+  };
+};
 
 describe("ganji cycle", () => {
   it("maps the 60-cycle with positive modulo", () => {
@@ -119,6 +134,7 @@ describe("original chart derived data", () => {
   it("derives day master, stem/branch metadata, hidden stems, and counts from calculated pillars", async () => {
     const result = await calculateSaju(baseInput({ birthDate: "2015-09-22", birthTime: "09:30" }));
 
+    expect(result.derived.policyVersion).toBe(ORIGINAL_CHART_DERIVED_POLICY_VERSION);
     expect(result.derived.dataVersion).toBe(ORIGINAL_CHART_DERIVED_DATA_VERSION);
     expect(result.derived.dayMaster).toMatchObject({
       index: 7,
@@ -200,6 +216,32 @@ describe("original chart derived data", () => {
       pianYin: 4,
       zhengYin: 1
     });
+  });
+
+  it("matches the canonical original-chart derived fixture and snapshot", async () => {
+    const result = await calculateSaju(originalChartDerivedFixture.input);
+    const expected = originalChartDerivedFixture.expect;
+
+    expect(result.derived.policyVersion).toBe(originalChartDerivedFixture.policyVersion);
+    expect(result.derived.dataVersion).toBe(originalChartDerivedFixture.dataVersion);
+    expect(result.derived.dayMaster).toMatchObject(expected.dayMaster);
+    expect({
+      yearStem: result.derived.pillars.year?.stem?.tenGod,
+      monthStem: result.derived.pillars.month?.stem?.tenGod,
+      dayStem: result.derived.pillars.day?.stem?.tenGod,
+      hourStem: result.derived.pillars.hour?.stem?.tenGod,
+      yearBranch: result.derived.pillars.year?.branch.tenGod,
+      monthBranch: result.derived.pillars.month?.branch.tenGod,
+      dayBranch: result.derived.pillars.day?.branch.tenGod,
+      hourBranch: result.derived.pillars.hour?.branch.tenGod
+    }).toEqual(expected.pillarTenGods);
+    expect(result.derived.pillars.day?.hiddenStems.map((hiddenStem) => ({
+      stemIndex: hiddenStem.index,
+      role: hiddenStem.role,
+      tenGod: hiddenStem.tenGod
+    }))).toEqual(expected.dayHiddenStems);
+    expect(result.derived.counts).toEqual(expected.counts);
+    expect(result.derived).toMatchSnapshot("original-chart-derived-v0.4.1");
   });
 
   it("omits hour derived data when birth time is unknown", async () => {
@@ -513,7 +555,7 @@ describe("validation and missing data", () => {
   it("returns engineVersion, policyVersion, dataVersion, normalized date, and applied options", async () => {
     const result = await calculateSaju(baseInput({ birthDate: "2015-09-22" }));
 
-    expect(result.metadata.engineVersion).toBe("0.4.0");
+    expect(result.metadata.engineVersion).toBe("0.4.1");
     expect(result.metadata.policyVersion).toBe("manse-policy-v0.1");
     expect(result.metadata.dataVersion).toContain("calendar:calendar-jdn-korean-lunar-0.3.1");
     expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.2");

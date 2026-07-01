@@ -218,6 +218,7 @@ export interface DateRange {
 }
 
 export interface OriginalChartDerivedData {
+  policyVersion: string;
   dataVersion: string;
   dayMaster: StemDerivedMetadata;
   pillars: Record<PillarKey, DerivedPillar | null>;

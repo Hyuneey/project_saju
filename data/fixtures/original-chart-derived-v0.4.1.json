@@ -1,0 +1,149 @@
+{
+  "name": "Original chart derived data fixture",
+  "policyVersion": "derived-original-chart-v0.4.1",
+  "dataVersion": "original-chart-derived-v0.4.1",
+  "input": {
+    "calendarType": "solar",
+    "birthDate": "2015-09-22",
+    "birthTime": "09:30",
+    "birthTimeUnknown": false,
+    "timezone": "Asia/Seoul",
+    "gender": "unknown",
+    "options": {
+      "yearBoundary": "lichun",
+      "monthBoundary": "solar_terms",
+      "dayBoundaryPolicy": "midnight",
+      "solarTimePolicy": "civil_time"
+    }
+  },
+  "expect": {
+    "dayMaster": {
+      "index": 7,
+      "romanization": "sin",
+      "element": "metal",
+      "yinYang": "yin"
+    },
+    "pillarTenGods": {
+      "yearStem": "pianCai",
+      "monthStem": "pianCai",
+      "dayStem": null,
+      "hourStem": "shiShen",
+      "yearBranch": "pianYin",
+      "monthBranch": "biJian",
+      "dayBranch": "pianYin",
+      "hourBranch": "pianGuan"
+    },
+    "dayHiddenStems": [
+      {
+        "stemIndex": 9,
+        "role": "residual",
+        "tenGod": "shiShen"
+      },
+      {
+        "stemIndex": 7,
+        "role": "middle",
+        "tenGod": "biJian"
+      },
+      {
+        "stemIndex": 5,
+        "role": "main",
+        "tenGod": "pianYin"
+      }
+    ],
+    "counts": {
+      "elements": {
+        "visible": {
+          "wood": 2,
+          "fire": 1,
+          "earth": 2,
+          "metal": 2,
+          "water": 1
+        },
+        "hiddenStems": {
+          "wood": 1,
+          "fire": 2,
+          "earth": 3,
+          "metal": 4,
+          "water": 1
+        },
+        "totalWithHiddenStems": {
+          "wood": 3,
+          "fire": 3,
+          "earth": 5,
+          "metal": 6,
+          "water": 2
+        }
+      },
+      "yinYang": {
+        "visible": {
+          "yang": 0,
+          "yin": 8
+        },
+        "hiddenStems": {
+          "yang": 4,
+          "yin": 7
+        },
+        "totalWithHiddenStems": {
+          "yang": 4,
+          "yin": 15
+        }
+      },
+      "tenGods": {
+        "visibleStems": {
+          "biJian": 0,
+          "jieCai": 0,
+          "shiShen": 1,
+          "shangGuan": 0,
+          "pianCai": 2,
+          "zhengCai": 0,
+          "pianGuan": 0,
+          "zhengGuan": 0,
+          "pianYin": 0,
+          "zhengYin": 0
+        },
+        "branchMain": {
+          "biJian": 1,
+          "jieCai": 0,
+          "shiShen": 0,
+          "shangGuan": 0,
+          "pianCai": 0,
+          "zhengCai": 0,
+          "pianGuan": 1,
+          "zhengGuan": 0,
+          "pianYin": 2,
+          "zhengYin": 0
+        },
+        "hiddenStems": {
+          "biJian": 2,
+          "jieCai": 2,
+          "shiShen": 1,
+          "shangGuan": 0,
+          "pianCai": 1,
+          "zhengCai": 0,
+          "pianGuan": 1,
+          "zhengGuan": 1,
+          "pianYin": 2,
+          "zhengYin": 1
+        },
+        "totalWithHiddenStems": {
+          "biJian": 3,
+          "jieCai": 2,
+          "shiShen": 2,
+          "shangGuan": 0,
+          "pianCai": 3,
+          "zhengCai": 0,
+          "pianGuan": 2,
+          "zhengGuan": 1,
+          "pianYin": 4,
+          "zhengYin": 1
+        }
+      }
+    }
+  },
+  "countPolicy": {
+    "visible": "visible heavenly stems and earthly branches",
+    "hiddenStems": "listed hidden stems counted once each without weighting",
+    "tenGodVisibleStems": "visible heavenly stems excluding the day stem",
+    "totalWithHiddenStems": "visible plus hidden-stem contributions"
+  }
+}

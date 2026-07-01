@@ -2,9 +2,9 @@
 
 Policy version: `manse-policy-v0.1`
 
-Engine release: `0.4.0`
+Engine release: `0.4.1`
 
-v0.4.0 keeps the pillar formulas from v0.1. It adds a deterministic derived-data layer from the resulting original chart.
+v0.4.1 keeps the pillar formulas from v0.1. It hardens the deterministic derived-data layer from the resulting original chart.
 
 ## Input Calendar Normalization
 
@@ -107,11 +107,11 @@ If `birthTimeUnknown` is true, the hour pillar is `null`.
 
 ## dayBoundaryPolicy
 
-v0.4.0 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.4.0 emits a warning and still calculates with `midnight`.
+v0.4.1 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.4.1 emits a warning and still calculates with `midnight`.
 
 ## solarTimePolicy
 
-v0.4.0 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.4.0 emits a warning and still calculates with civil time.
+v0.4.1 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.4.1 emits a warning and still calculates with civil time.
 
 ## Derived Original Chart Data
 
@@ -123,7 +123,9 @@ derived = deterministic data derived from pillars
 interpretation = natural language explanation, not implemented
 ```
 
-`derived.dataVersion` is `original-chart-derived-v0.4.0`.
+`derived.policyVersion` is `derived-original-chart-v0.4.1`.
+
+`derived.dataVersion` is `original-chart-derived-v0.4.1`.
 
 The derived layer includes:
 
@@ -155,8 +157,8 @@ The solar-term dataset is table-driven and supports 1950 through 2050. Unsupport
 
 - Default lunar conversion is limited to the Korean lunar provider range documented above.
 - Default solar-term coverage is limited to rows in `data/solar-terms/solar-terms.v0.2.2.json`.
-- Mean solar time and true solar time are not applied in v0.4.0.
-- `early_zi` and `split_zi` day boundary policies are accepted but not applied in v0.4.0.
+- Mean solar time and true solar time are not applied in v0.4.1.
+- `early_zi` and `split_zi` day boundary policies are accepted but not applied in v0.4.1.
 - The v0.2.2 solar-term dataset is `cross-checked`, not production-certified.
 
 ## Data Sources

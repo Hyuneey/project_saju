@@ -19,7 +19,8 @@ import type {
   YinYangCounts
 } from "./types";
 
-export const ORIGINAL_CHART_DERIVED_DATA_VERSION = "original-chart-derived-v0.4.0";
+export const ORIGINAL_CHART_DERIVED_DATA_VERSION = "original-chart-derived-v0.4.1";
+export const ORIGINAL_CHART_DERIVED_POLICY_VERSION = "derived-original-chart-v0.4.1";
 
 const ELEMENTS: readonly FiveElement[] = ["wood", "fire", "earth", "metal", "water"];
 const YIN_YANG: readonly YinYang[] = ["yang", "yin"];
@@ -162,6 +163,7 @@ export function deriveOriginalChart(pillars: PillarsForDerivation): OriginalChar
   };
 
   return {
+    policyVersion: ORIGINAL_CHART_DERIVED_POLICY_VERSION,
     dataVersion: ORIGINAL_CHART_DERIVED_DATA_VERSION,
     dayMaster,
     pillars: derivedPillars,
