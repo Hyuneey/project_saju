@@ -23,7 +23,7 @@
     "source": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["name"],
+      "required": ["name", "license"],
       "properties": {
         "name": { "type": "string", "minLength": 1 },
         "url": { "type": "string", "format": "uri" },
@@ -31,7 +31,7 @@
           "type": "string",
           "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
         },
-        "license": { "type": "string" },
+        "license": { "type": "string", "minLength": 1 },
         "notes": { "type": "string" }
       }
     },
@@ -90,7 +90,7 @@
         },
         "at": {
           "type": "string",
-          "description": "UTC ISO 8601 boundary datetime. v0.2.1 requires second precision and trailing Z.",
+          "description": "UTC ISO 8601 boundary datetime. v0.2.2 requires second precision and trailing Z.",
           "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
         },
         "source": { "type": "string" }

@@ -30,13 +30,13 @@ describe("year pillar", () => {
   });
 
   it("changes at the lichun boundary", async () => {
-    const before = await calculateSaju(baseInput({ birthDate: "2015-02-04", birthTime: "12:57" }));
-    const atBoundary = await calculateSaju(baseInput({ birthDate: "2015-02-04", birthTime: "12:58" }));
+    const before = await calculateSaju(baseInput({ birthDate: "2015-02-04", birthTime: "12:58" }));
+    const afterBoundary = await calculateSaju(baseInput({ birthDate: "2015-02-04", birthTime: "12:59" }));
 
     expect(before.pillars.year.ganji).toBe("갑오");
     expect(before.basis.year.appliedYear).toBe(2014);
-    expect(atBoundary.pillars.year.ganji).toBe("을미");
-    expect(atBoundary.basis.year.appliedYear).toBe(2015);
+    expect(afterBoundary.pillars.year.ganji).toBe("을미");
+    expect(afterBoundary.basis.year.appliedYear).toBe(2015);
   });
 
   it("calculates exact lichun boundary inside the expanded certified range", async () => {
@@ -47,41 +47,41 @@ describe("year pillar", () => {
     expect(atBoundary.basis.year.appliedYear).toBe(2024);
     expect(atBoundary.basis.year.lichun).toMatchObject({
       key: "lichun",
-      at: "2024-02-04T08:27:00Z"
+      at: "2024-02-04T08:26:50Z"
     });
   });
 });
 
 describe("month pillar", () => {
   it("does not advance month on the solar-term date before the exact boundary time", async () => {
-    const before = await calculateSaju(baseInput({ birthDate: "2015-03-06", birthTime: "06:54" }));
-    const atBoundary = await calculateSaju(baseInput({ birthDate: "2015-03-06", birthTime: "06:55" }));
+    const before = await calculateSaju(baseInput({ birthDate: "2015-03-06", birthTime: "06:55" }));
+    const afterBoundary = await calculateSaju(baseInput({ birthDate: "2015-03-06", birthTime: "06:56" }));
 
     expect(before.basis.month.activeBoundary).toMatchObject({ key: "lichun", monthOrder: 0 });
     expect(before.basis.month.activeTerm).toMatchObject({
       key: "lichun",
-      at: "2015-02-04T03:58:00Z",
-      dateTime: "2015-02-04T03:58:00"
+      at: "2015-02-04T03:58:30Z",
+      dateTime: "2015-02-04T03:58:30"
     });
     expect(before.pillars.month.ganji).toBe("무인");
 
-    expect(atBoundary.basis.month.activeBoundary).toMatchObject({ key: "gyeongchip", monthOrder: 1 });
-    expect(atBoundary.basis.month.activeTerm).toMatchObject({
+    expect(afterBoundary.basis.month.activeBoundary).toMatchObject({ key: "gyeongchip", monthOrder: 1 });
+    expect(afterBoundary.basis.month.activeTerm).toMatchObject({
       key: "gyeongchip",
-      at: "2015-03-05T21:55:00Z",
-      dateTime: "2015-03-05T21:55:00"
+      at: "2015-03-05T21:55:46Z",
+      dateTime: "2015-03-05T21:55:46"
     });
-    expect(atBoundary.pillars.month.ganji).toBe("기묘");
+    expect(afterBoundary.pillars.month.ganji).toBe("기묘");
   });
 
   it("changes at the cheongmyeong solar-term boundary", async () => {
-    const before = await calculateSaju(baseInput({ birthDate: "2015-04-05", birthTime: "11:38" }));
-    const atBoundary = await calculateSaju(baseInput({ birthDate: "2015-04-05", birthTime: "11:39" }));
+    const before = await calculateSaju(baseInput({ birthDate: "2015-04-05", birthTime: "11:39" }));
+    const afterBoundary = await calculateSaju(baseInput({ birthDate: "2015-04-05", birthTime: "11:40" }));
 
     expect(before.pillars.month.ganji).toBe("기묘");
     expect(before.basis.month.monthOrder).toBe(1);
-    expect(atBoundary.pillars.month.ganji).toBe("경진");
-    expect(atBoundary.basis.month.monthOrder).toBe(2);
+    expect(afterBoundary.pillars.month.ganji).toBe("경진");
+    expect(afterBoundary.basis.month.monthOrder).toBe(2);
   });
 });
 
@@ -186,17 +186,17 @@ describe("validation and missing data", () => {
   });
 
   it("fails loudly when solar-term data is missing", async () => {
-    await expect(calculateSaju(baseInput({ birthDate: "2035-01-01" }))).rejects.toMatchObject({
+    await expect(calculateSaju(baseInput({ birthDate: "1948-01-01" }))).rejects.toMatchObject({
       code: "SOLAR_TERM_DATA_MISSING"
     });
   });
 
   it("fails loudly outside the certified solar-term range", async () => {
-    await expect(calculateSaju(baseInput({ birthDate: "2027-02-04" }))).rejects.toMatchObject({
+    await expect(calculateSaju(baseInput({ birthDate: "2051-02-04" }))).rejects.toMatchObject({
       code: "SOLAR_TERM_DATA_MISSING",
       detail: {
-        dataVersion: "solar-terms-v0.2.1",
-        supportedGregorianYears: { from: 2015, to: 2026 }
+        dataVersion: "solar-terms-v0.2.2",
+        supportedGregorianYears: { from: 1950, to: 2050 }
       }
     });
   });
@@ -210,9 +210,9 @@ describe("validation and missing data", () => {
   it("returns engineVersion, policyVersion, dataVersion, normalized date, and applied options", async () => {
     const result = await calculateSaju(baseInput({ birthDate: "2015-09-22" }));
 
-    expect(result.metadata.engineVersion).toBe("0.2.1");
+    expect(result.metadata.engineVersion).toBe("0.2.2");
     expect(result.metadata.policyVersion).toBe("manse-policy-v0.1");
-    expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.1");
+    expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.2");
     expect(result.metadata.appliedOptions).toEqual(baseOptions());
     expect(result.normalizedDateTime.solarDate).toBe("2015-09-22");
   });
@@ -247,8 +247,29 @@ describe("validation and missing data", () => {
     expect(result.basis.month.activeBoundary).toMatchObject({ key: "daeseol", monthOrder: 10 });
     expect(result.basis.month.activeTerm).toMatchObject({
       key: "daeseol",
-      at: "2025-12-06T21:04:00Z",
-      dateTime: "2025-12-06T21:04:00"
+      at: "2025-12-06T21:04:39Z",
+      dateTime: "2025-12-06T21:04:39"
+    });
+  });
+
+  it("uses the 1949 daeseol carryover for early January in the first certified year", async () => {
+    const result = await calculateSaju(baseInput({ birthDate: "1950-01-01", birthTime: "12:00" }));
+
+    expect(result.basis.month.activeBoundary).toMatchObject({ key: "daeseol", monthOrder: 10 });
+    expect(result.basis.month.activeTerm).toMatchObject({
+      key: "daeseol",
+      at: "1949-12-07T10:33:34Z"
+    });
+    expect(result.basis.year.appliedYear).toBe(1949);
+  });
+
+  it("calculates inside the final certified year", async () => {
+    const result = await calculateSaju(baseInput({ birthDate: "2050-12-31", birthTime: "12:00" }));
+
+    expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.2");
+    expect(result.basis.month.activeTerm).toMatchObject({
+      key: "daeseol",
+      at: "2050-12-06T22:41:17Z"
     });
   });
 
@@ -282,7 +303,7 @@ function expectDatasetInvalid(dataset: SolarTermDataset, expectedDetail: string)
     expect(error).toMatchObject({
       code: "SOLAR_TERM_DATA_INVALID",
       detail: {
-        dataVersion: "solar-terms-v0.2.1",
+        dataVersion: "solar-terms-v0.2.2",
         errors: expect.arrayContaining([expect.stringContaining(expectedDetail)])
       }
     });

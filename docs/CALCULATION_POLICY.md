@@ -2,9 +2,9 @@
 
 Policy version: `manse-policy-v0.1`
 
-Engine release: `0.2.1`
+Engine release: `0.2.2`
 
-v0.2.1 does not change the calculation formulas from v0.1. It adds certification metadata, expands the supported solar-term range, and requires complete exact UTC boundary data for every supported Gregorian year.
+v0.2.2 does not change the calculation formulas from v0.1. It expands the supported solar-term range to 1950-2050 and keeps complete exact UTC boundary data mandatory for every supported Gregorian year.
 
 ## Ganji Cycle
 
@@ -102,11 +102,11 @@ If `birthTimeUnknown` is true, the hour pillar is `null`.
 
 ## dayBoundaryPolicy
 
-v0.2.1 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.2.1 emits a warning and still calculates with `midnight`.
+v0.2.2 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.2.2 emits a warning and still calculates with `midnight`.
 
 ## solarTimePolicy
 
-v0.2.1 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.2.1 emits a warning and still calculates with civil time.
+v0.2.2 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.2.2 emits a warning and still calculates with civil time.
 
 ## dataVersion
 
@@ -114,18 +114,18 @@ Every result includes `metadata.engineVersion`, `metadata.policyVersion`, and `m
 
 The default value combines the calendar provider and solar-term provider versions:
 
-`calendar:calendar-jdn-gregorian-0.1.0;solarTerms:solar-terms-v0.2.1`
+`calendar:calendar-jdn-gregorian-0.1.0;solarTerms:solar-terms-v0.2.2`
 
-The solar-term dataset is table-driven in v0.2.1 and supports 2015 through 2026. Unsupported years fail with `SOLAR_TERM_DATA_MISSING`.
+The solar-term dataset is table-driven in v0.2.2 and supports 1950 through 2050. Unsupported years fail with `SOLAR_TERM_DATA_MISSING`.
 
 ## Known Limitations
 
 - Default lunar conversion is unavailable and fails with `LUNAR_CONVERSION_UNAVAILABLE`.
-- Default solar-term coverage is limited to rows in `data/solar-terms/solar-terms.v0.2.1.json`.
-- Mean solar time and true solar time are not applied in v0.2.1.
-- `early_zi` and `split_zi` day boundary policies are accepted but not applied in v0.2.1.
-- The v0.2.1 dataset is `imported-unverified`, not independently cross-checked or production-certified.
+- Default solar-term coverage is limited to rows in `data/solar-terms/solar-terms.v0.2.2.json`.
+- Mean solar time and true solar time are not applied in v0.2.2.
+- `early_zi` and `split_zi` day boundary policies are accepted but not applied in v0.2.2.
+- The v0.2.2 dataset is `cross-checked`, not production-certified.
 
-## Seed Data Sources
+## Solar-Term Data Source
 
-The checked-in v0.2.1 rows are imported from UTC Date and Time tables on the relevant Wikipedia solar-term pages. Those pages cite JPL Horizons and, for some 2021-2030 rows, Skyfield. Pages used include [Lichun](https://en.wikipedia.org/wiki/Lichun), [Jingzhe](https://en.wikipedia.org/wiki/Jingzhe), [Qingming](https://en.wikipedia.org/wiki/Qingming_(solar_term)), [Lixia](https://en.wikipedia.org/wiki/Lixia), [Mangzhong](https://en.wikipedia.org/wiki/Mangzhong), [Xiaoshu](https://en.wikipedia.org/wiki/Xiaoshu), [Liqiu](https://en.wikipedia.org/wiki/Liqiu), [Bailu](https://en.wikipedia.org/wiki/Bailu_(solar_term)), [Hanlu](https://en.wikipedia.org/wiki/Hanlu), [Lidong](https://en.wikipedia.org/wiki/Lidong), [Daxue](https://en.wikipedia.org/wiki/Daxue_(solar_term)), and [Xiaohan](https://en.wikipedia.org/wiki/Xiaohan).
+The checked-in v0.2.2 rows are generated with `astronomy-engine` `SearchSunLongitude`, which searches for the apparent Sun ecliptic longitude boundary. The generated 2015-2026 overlap is checked against the v0.2.1 public UTC table import within 90 seconds. Runtime code consumes only the generated internal dataset and does not call live astronomy APIs.

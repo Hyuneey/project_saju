@@ -20,7 +20,7 @@ interface SolarTermDataset {
     name: string;
     url?: string;
     retrievedAt?: string;
-    license?: string;
+    license: string;
     notes?: string;
   };
   generatedAt?: string;
@@ -33,7 +33,7 @@ interface SolarTermDataset {
 }
 ```
 
-`at` is the exact boundary instant. v0.2.1 stores all boundaries as UTC ISO 8601 strings with second precision and a trailing `Z`.
+`at` is the exact boundary instant. v0.2.2 stores all boundaries as UTC ISO 8601 strings with second precision and a trailing `Z`.
 
 ## Certification
 
@@ -44,7 +44,7 @@ interface SolarTermDataset {
 - `cross-checked`: independently checked against at least one additional source or reproducible astronomical calculation.
 - `production-certified`: approved for production use after source, license, coverage, and regression review.
 
-The checked-in `solar-terms.v0.2.1.json` is `imported-unverified`. It is service-ready as a deterministic internal dataset, but it must not be described as independently certified.
+The checked-in `solar-terms.v0.2.2.json` is `cross-checked`. It is generated with `astronomy-engine` `SearchSunLongitude` and overlap-checked against the v0.2.1 imported UTC table data for 2015 through 2026 within 90 seconds. It is not marked `production-certified`.
 
 ## Coverage
 
@@ -63,16 +63,16 @@ The checked-in `solar-terms.v0.2.1.json` is `imported-unverified`. It is service
 - `ipdong`
 - `daeseol`
 
-The v0.2.1 supported range is 2015 through 2026. The dataset also contains only the previous year's `daeseol` as a carryover row, so early-January dates in the first supported year can resolve the previous month boundary. That carryover year is not itself a supported calculation year.
+The v0.2.2 supported range is 1950 through 2050. The dataset also contains only the previous year's `daeseol` as a carryover row, so early-January dates in the first supported year can resolve the previous month boundary. That carryover year is not itself a supported calculation year.
 
 ## Source Policy
 
-Runtime code must not call public APIs or scrape source pages. Source rows are imported into a versioned JSON file and then generated into the engine package.
+Runtime code must not call public APIs, scrape source pages, or compute solar terms dynamically. Source rows are imported into a versioned JSON file and then generated into the engine package.
 
 Accepted source records must include:
 
 - exact UTC datetime, not date-only labels;
-- source name and retrieval date;
+- source name and retrieval or generation date;
 - license or usage note;
 - certification level matching the evidence quality.
 
@@ -80,7 +80,7 @@ If data is missing, duplicated, out of order, outside range, or stale relative t
 
 ## Workflow
 
-1. Store or import source rows into `solar-terms.v0.2.1.json`.
+1. Run `corepack pnpm import:solar-terms` to regenerate `solar-terms.v0.2.2.json`.
 2. Run `corepack pnpm validate:solar-terms`.
 3. Run `corepack pnpm build:solar-terms` if the generated engine module is stale.
 4. Run `corepack pnpm verify`.
@@ -90,4 +90,4 @@ If data is missing, duplicated, out of order, outside range, or stale relative t
 
 ## Limitations
 
-The v0.2.1 rows are imported from public UTC tables whose pages cite JPL Horizons and Skyfield. They have not yet been independently cross-checked in this repository, so the dataset remains `imported-unverified`. Unsupported years must fail; they must not be guessed or interpolated.
+The v0.2.2 rows are generated from `astronomy-engine` rather than imported from an official government almanac. The overlap guard compares the 2015-2026 generated rows to the v0.2.1 public UTC table import, but the full 1950-2050 range has not been independently checked against a second complete official table in this repository. Unsupported years must fail; they must not be guessed or interpolated.

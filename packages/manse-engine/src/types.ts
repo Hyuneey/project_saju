@@ -116,7 +116,7 @@ export interface SolarTermDataset {
     name: string;
     url?: string;
     retrievedAt?: string;
-    license?: string;
+    license: string;
     notes?: string;
   };
   generatedAt?: string;

@@ -77,7 +77,10 @@ export class TableSolarTermProvider implements SolarTermProvider {
   }
 
   getTermsForGregorianYear(year: number): SolarTerm[] {
-    if (this.supportedGregorianYears && year > this.supportedGregorianYears.to) {
+    if (
+      this.supportedGregorianYears &&
+      (year < this.supportedGregorianYears.from - 1 || year > this.supportedGregorianYears.to)
+    ) {
       throw new ManseError(
         "SOLAR_TERM_DATA_MISSING",
         `Solar-term data is outside the certified range for Gregorian year ${year}.`,

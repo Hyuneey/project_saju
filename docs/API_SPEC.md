@@ -82,7 +82,7 @@ interface CalculateSajuResult {
 }
 ```
 
-`engineVersion` identifies the package release. `policyVersion` identifies the calculation policy. v0.2.1 still uses `manse-policy-v0.1` because the pillar formulas are unchanged.
+`engineVersion` identifies the package release. `policyVersion` identifies the calculation policy. v0.2.2 still uses `manse-policy-v0.1` because the pillar formulas are unchanged.
 
 ## Providers
 
@@ -101,7 +101,7 @@ interface SolarTermProvider {
 }
 ```
 
-The default providers are table-driven. They do not call live APIs at runtime. The default solar-term provider consumes the generated internal module built from `data/solar-terms/solar-terms.v0.2.1.json`.
+The default providers are table-driven. They do not call live APIs at runtime. The default solar-term provider consumes the generated internal module built from `data/solar-terms/solar-terms.v0.2.2.json`.
 
 ## HTTP Route
 
@@ -121,14 +121,18 @@ Error response:
 {
   "error": {
     "code": "SOLAR_TERM_DATA_MISSING",
-    "message": "Solar-term data is missing for Gregorian year 2035.",
-    "detail": { "year": 2035 }
+    "message": "Solar-term data is outside the certified range for Gregorian year 2051.",
+    "detail": {
+      "year": 2051,
+      "dataVersion": "solar-terms-v0.2.2",
+      "supportedGregorianYears": { "from": 1950, "to": 2050 }
+    }
   }
 }
 ```
 
 Unsupported forward-compatible policies:
 
-- `dayBoundaryPolicy: "early_zi"` and `"split_zi"` are accepted, but v0.2.1 calculates with `midnight` and emits `DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED`.
-- `solarTimePolicy: "mean_solar_time"` and `"true_solar_time"` are accepted, but v0.2.1 calculates with `civil_time`, sets `solarTimeApplied: false`, and emits `SOLAR_TIME_POLICY_NOT_IMPLEMENTED`.
+- `dayBoundaryPolicy: "early_zi"` and `"split_zi"` are accepted, but v0.2.2 calculates with `midnight` and emits `DAY_BOUNDARY_POLICY_NOT_IMPLEMENTED`.
+- `solarTimePolicy: "mean_solar_time"` and `"true_solar_time"` are accepted, but v0.2.2 calculates with `civil_time`, sets `solarTimeApplied: false`, and emits `SOLAR_TIME_POLICY_NOT_IMPLEMENTED`.
 - Default lunar conversion is unavailable. Lunar input must include `lunarLeapMonth`, then fails with `LUNAR_CONVERSION_UNAVAILABLE` unless a custom `CalendarDataProvider` is supplied.

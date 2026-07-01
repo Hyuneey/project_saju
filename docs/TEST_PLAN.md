@@ -9,7 +9,7 @@ corepack pnpm verify
 ## Golden Fixtures
 
 - `data/fixtures/kasi-2015-09-22.json` records the KASI sample date, Julian Day Number `2457288`, and expected day ganji `신축`.
-- `data/solar-terms/solar-terms.v0.2.1.json` is the canonical versioned solar-term dataset used to generate the default engine data module.
+- `data/solar-terms/solar-terms.v0.2.2.json` is the canonical versioned solar-term dataset used to generate the default engine data module.
 
 ## Required Tests
 
@@ -32,6 +32,7 @@ corepack pnpm verify
 - Repository encoding check rejects Unicode replacement characters in source, docs, fixtures, and UI files.
 - Solar-term validation checks canonical dataset shape, required names, Korean/Hanja labels, longitudes, UTC datetimes, complete years, carryover years, and generated engine module freshness.
 - Solar-term validation rejects missing, duplicated, out-of-order, out-of-range, or stale certified data.
+- Solar-term import checks generated 2015-2026 overlap against the v0.2.1 public UTC table import within 90 seconds.
 
 ## Edge Cases
 
@@ -39,7 +40,9 @@ corepack pnpm verify
 - Birth exactly equal to a month solar-term boundary should apply the new month.
 - `23:00` and `00:59` both map to 자 hour.
 - `00:59` and `01:00` preserve minute-level basis and split at the 축 boundary.
-- Dates before current-year 소한 use previous-year 대설 when that seed data exists.
+- Dates before current-year 소한 use previous-year 대설 when that carryover data exists.
+- Early January 1950 uses the 1949 대설 carryover row.
+- Dates through 2050 calculate from certified solar-term data.
 - Unsupported years must not use guessed solar-term dates.
 - Fixed offsets such as `+09:00` must be rejected even if the offset is valid.
 
@@ -54,4 +57,4 @@ When comparing with external manse calendars:
 5. Confirm whether mean or true solar time is applied.
 6. Compare intermediate basis values before comparing final pillars.
 
-Differences can be legitimate when any policy differs. v0.2.1 reports policy, data version, and basis values so those differences are auditable.
+Differences can be legitimate when any policy differs. v0.2.2 reports policy, data version, and basis values so those differences are auditable.
