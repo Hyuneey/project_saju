@@ -44,7 +44,7 @@ interface SolarTermDataset {
 - `cross-checked`: independently checked against at least one additional source or reproducible astronomical calculation.
 - `production-certified`: approved for production use after source, license, coverage, and regression review.
 
-The checked-in `solar-terms.v0.2.2.json` is `cross-checked`. It is generated with `astronomy-engine` `SearchSunLongitude` and overlap-checked against the v0.2.1 imported UTC table data for 2015 through 2026 within 90 seconds. It is not marked `production-certified`.
+The checked-in `solar-terms.v0.2.2.json` is `cross-checked`. It is generated with `astronomy-engine` `SearchSunLongitude`, overlap-checked against the v0.2.1 imported UTC table data for 2014 through 2026 within 90 seconds, and checked against a limited Chinese Calendar Online 2025-2028 fixture in v0.2.3. It is not marked `production-certified`.
 
 ## Coverage
 
@@ -82,12 +82,13 @@ If data is missing, duplicated, out of order, outside range, or stale relative t
 
 1. Run `corepack pnpm import:solar-terms` to regenerate `solar-terms.v0.2.2.json`.
 2. Run `corepack pnpm validate:solar-terms`.
-3. Run `corepack pnpm build:solar-terms` if the generated engine module is stale.
-4. Run `corepack pnpm verify`.
-5. Commit both the canonical JSON and generated engine module.
+3. Run `corepack pnpm check:solar-terms-source`.
+4. Run `corepack pnpm build:solar-terms` if the generated engine module is stale.
+5. Run `corepack pnpm verify`.
+6. Commit both the canonical JSON and generated engine module.
 
-`corepack pnpm verify` runs the solar-term validator in CI.
+`corepack pnpm verify` runs the solar-term validator and source comparison in CI.
 
 ## Limitations
 
-The v0.2.2 rows are generated from `astronomy-engine` rather than imported from an official government almanac. The overlap guard compares the 2015-2026 generated rows to the v0.2.1 public UTC table import, but the full 1950-2050 range has not been independently checked against a second complete official table in this repository. Unsupported years must fail; they must not be guessed or interpolated.
+The v0.2.2 rows are generated from `astronomy-engine` rather than imported from an official government almanac. The overlap guard compares 2014-2026 generated rows to the v0.2.1 public UTC table import, and v0.2.3 adds a limited 2025-2028 fixture from Chinese Calendar Online. The full 1950-2050 range has not been independently checked against a second complete official table in this repository. Unsupported years must fail; they must not be guessed or interpolated.

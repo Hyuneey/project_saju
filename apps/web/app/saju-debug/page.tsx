@@ -80,7 +80,7 @@ export default function SajuDebugPage() {
     <main className="debug-page">
       <header className="page-header">
         <h1>사주 계산 검증</h1>
-        <span>Manse Engine v0.2.2</span>
+        <span>Manse Engine v0.2.3</span>
       </header>
 
       <div className="workspace">

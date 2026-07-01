@@ -33,6 +33,7 @@ corepack pnpm verify
 - Solar-term validation checks canonical dataset shape, required names, Korean/Hanja labels, longitudes, UTC datetimes, complete years, carryover years, and generated engine module freshness.
 - Solar-term validation rejects missing, duplicated, out-of-order, out-of-range, or stale certified data.
 - Solar-term import checks generated 2015-2026 overlap against the v0.2.1 public UTC table import within 90 seconds.
+- Solar-term source comparison checks v0.2.1 overlap plus the checked-in Chinese Calendar Online 2025-2028 fixture and documents why production certification is still blocked.
 
 ## Edge Cases
 
@@ -57,4 +58,4 @@ When comparing with external manse calendars:
 5. Confirm whether mean or true solar time is applied.
 6. Compare intermediate basis values before comparing final pillars.
 
-Differences can be legitimate when any policy differs. v0.2.2 reports policy, data version, and basis values so those differences are auditable.
+Differences can be legitimate when any policy differs. v0.2.3 reports policy, data version, and basis values so those differences are auditable.

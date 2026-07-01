@@ -210,11 +210,18 @@ describe("validation and missing data", () => {
   it("returns engineVersion, policyVersion, dataVersion, normalized date, and applied options", async () => {
     const result = await calculateSaju(baseInput({ birthDate: "2015-09-22" }));
 
-    expect(result.metadata.engineVersion).toBe("0.2.2");
+    expect(result.metadata.engineVersion).toBe("0.2.3");
     expect(result.metadata.policyVersion).toBe("manse-policy-v0.1");
     expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.2");
     expect(result.metadata.appliedOptions).toEqual(baseOptions());
     expect(result.normalizedDateTime.solarDate).toBe("2015-09-22");
+  });
+
+  it("keeps the v0.2.2 solar-term dataset cross-checked until production evidence is complete", () => {
+    expect(SOLAR_TERM_DATASET.dataVersion).toBe("solar-terms-v0.2.2");
+    expect(SOLAR_TERM_DATASET.certificationLevel).toBe("cross-checked");
+    expect(SOLAR_TERM_DATASET.supportedGregorianYears).toEqual({ from: 1950, to: 2050 });
+    expect(SOLAR_TERM_DATASET.terms).toHaveLength(1213);
   });
 
   it("warns clearly for accepted but unsupported forward-compatible policies", async () => {
