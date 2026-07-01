@@ -48,6 +48,9 @@ importers:
       '@js-temporal/polyfill':
         specifier: ^0.5.1
         version: 0.5.1
+      korean-lunar-calendar:
+        specifier: ^0.4.0
+        version: 0.4.0
       zod:
         specifier: ^3.25.0
         version: 3.25.76
@@ -664,6 +667,10 @@ packages:
 
   jsbi@4.3.2:
     resolution: {integrity: sha512-9fqMSQbhJykSeii05nxKl4m6Eqn2P6rOlYiS+C5Dr/HPIU/7yZxu5qzbs40tgaFORiw2Amd0mirjxatXYMkIew==}
+
+  korean-lunar-calendar@0.4.0:
+    resolution: {integrity: sha512-kJXyH3sI/butJxCBtsLXlMJsl5qqNKNjduf1Na0s7XXwP+D/Wdlx0R0/S5ygxPVFSXf/JZ3bBKaCP6bGWhgZ0w==}
+    engines: {node: '>= 16.14.0'}
 
   loupe@3.2.1:
     resolution: {integrity: sha512-CdzqowRJCeLU72bHvWqwRBBlLcMEtIvGrlvef74kMnV2AolS9Y8xUv1I0U/MNAWMhBlKIoyuEgoJ0t/bbwHbLQ==}
@@ -1325,6 +1332,8 @@ snapshots:
   js-tokens@9.0.1: {}
 
   jsbi@4.3.2: {}
+
+  korean-lunar-calendar@0.4.0: {}
 
   loupe@3.2.1: {}
 

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  TableCalendarDataProvider,
   TableSolarTermProvider,
   calculateHourPillar,
   calculateSaju,
@@ -170,18 +171,87 @@ describe("validation and missing data", () => {
     })).rejects.toMatchObject({ code: "LUNAR_LEAP_MONTH_REQUIRED" });
   });
 
-  it("fails loudly with requested lunar date details when default lunar conversion is unavailable", async () => {
-    await expect(calculateSaju({
+  it("converts lunar input with the default Korean lunar provider", async () => {
+    const fromSolarInput = await calculateSaju({
       ...baseInput({ birthDate: "2015-09-22" }),
+      calendarType: "solar"
+    });
+    const fromLunarInput = await calculateSaju({
+      ...baseInput({ birthDate: "2015-08-10" }),
+      calendarType: "lunar",
+      lunarLeapMonth: false
+    });
+
+    expect(fromLunarInput.normalizedDateTime.solarDate).toBe("2015-09-22");
+    expect(fromLunarInput.pillars).toEqual(fromSolarInput.pillars);
+    expect(fromLunarInput.metadata.dataVersion).toContain("calendar:calendar-jdn-korean-lunar-0.3.0");
+  });
+
+  it("converts Korean leap lunar months", async () => {
+    const result = await calculateSaju({
+      ...baseInput({ birthDate: "2017-05-01" }),
+      calendarType: "lunar",
+      lunarLeapMonth: true
+    });
+
+    expect(result.normalizedDateTime.solarDate).toBe("2017-06-24");
+  });
+
+  it("rejects impossible Korean lunar leap-month dates", async () => {
+    await expect(calculateSaju({
+      ...baseInput({ birthDate: "2017-03-01" }),
+      calendarType: "lunar",
+      lunarLeapMonth: true
+    })).rejects.toMatchObject({
+      code: "INVALID_DATE",
+      detail: {
+        provider: "KoreanLunarCalendarProvider",
+        requestedLunarDate: { year: 2017, month: 3, day: 1, leapMonth: true }
+      }
+    });
+  });
+
+  it("fails loudly when Korean lunar conversion is outside the supported range", async () => {
+    await expect(calculateSaju({
+      ...baseInput({ birthDate: "2050-12-01" }),
       calendarType: "lunar",
       lunarLeapMonth: false
     })).rejects.toMatchObject({
-      code: "LUNAR_CONVERSION_UNAVAILABLE",
+      code: "OUT_OF_SUPPORTED_RANGE",
       detail: {
-        provider: "TableCalendarDataProvider",
-        requestedLunarDate: { year: 2015, month: 9, day: 22, leapMonth: false },
-        supportedInDefaultProvider: false
+        provider: "KoreanLunarCalendarProvider",
+        calendarType: "lunar",
+        supportedRange: {
+          from: { year: 1000, month: 1, day: 1 },
+          to: { year: 2050, month: 11, day: 18 }
+        }
       }
+    });
+  });
+
+  it("converts solar dates to Korean lunar dates through the default calendar provider", () => {
+    const provider = new TableCalendarDataProvider();
+
+    expect(provider.solarToLunar({ year: 2017, month: 6, day: 24 })).toEqual({
+      year: 2017,
+      month: 5,
+      day: 1,
+      leapMonth: true
+    });
+  });
+
+  it("converts documented Korean lunar fixture examples through the default calendar provider", () => {
+    const provider = new TableCalendarDataProvider();
+
+    expect(provider.lunarToSolar({ year: 2015, month: 8, day: 10, leapMonth: false })).toEqual({
+      year: 2015,
+      month: 9,
+      day: 22
+    });
+    expect(provider.lunarToSolar({ year: 1956, month: 1, day: 21, leapMonth: false })).toEqual({
+      year: 1956,
+      month: 3,
+      day: 3
     });
   });
 
@@ -210,8 +280,9 @@ describe("validation and missing data", () => {
   it("returns engineVersion, policyVersion, dataVersion, normalized date, and applied options", async () => {
     const result = await calculateSaju(baseInput({ birthDate: "2015-09-22" }));
 
-    expect(result.metadata.engineVersion).toBe("0.2.3");
+    expect(result.metadata.engineVersion).toBe("0.3.0");
     expect(result.metadata.policyVersion).toBe("manse-policy-v0.1");
+    expect(result.metadata.dataVersion).toContain("calendar:calendar-jdn-korean-lunar-0.3.0");
     expect(result.metadata.dataVersion).toContain("solarTerms:solar-terms-v0.2.2");
     expect(result.metadata.appliedOptions).toEqual(baseOptions());
     expect(result.normalizedDateTime.solarDate).toBe("2015-09-22");

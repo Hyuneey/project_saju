@@ -2,21 +2,26 @@
 
 Policy version: `manse-policy-v0.1`
 
-Engine release: `0.2.3`
+Engine release: `0.3.0`
 
-v0.2.3 does not change the calculation formulas from v0.1. It keeps the v0.2.2 solar-term range at 1950-2050 and adds independent source comparison workflow for the dataset certification decision.
+v0.3.0 keeps the pillar formulas from v0.1. It adds Korean lunar input normalization before calculation; once normalized, all pillars are calculated from the resulting solar Gregorian date/time.
+
+## Input Calendar Normalization
+
+`calendarType: "solar"` uses `birthDate` as a Gregorian date.
+
+`calendarType: "lunar"` uses `birthDate` as a Korean lunar date and requires `lunarLeapMonth`. The default `TableCalendarDataProvider` converts the Korean lunar date to a Gregorian solar date before applying year, month, day, and hour pillar formulas.
+
+Default lunar conversion ranges:
+
+- Solar to lunar: `1000-02-13` through `2050-12-31`
+- Lunar to solar: `1000-01-01` through `2050-11-18`
+
+Dates outside those ranges fail with `OUT_OF_SUPPORTED_RANGE`. Impossible lunar dates or invalid leap-month requests fail with `INVALID_DATE`.
 
 ## Ganji Cycle
 
-Heavenly stems are indexed as:
-
-`0 갑, 1 을, 2 병, 3 정, 4 무, 5 기, 6 경, 7 신, 8 임, 9 계`
-
-Earthly branches are indexed as:
-
-`0 자, 1 축, 2 인, 3 묘, 4 진, 5 사, 6 오, 7 미, 8 신, 9 유, 10 술, 11 해`
-
-`ganjiIndex 0 = 갑자`.
+Heavenly stems and earthly branches are indexed in the standard 10-stem and 12-branch order. `ganjiIndex 0` is gapja.
 
 ```ts
 stem = STEMS[ganjiIndex % 10]
@@ -34,7 +39,7 @@ If the calculation datetime is greater than or equal to lichun of the Gregorian 
 yearGanjiIndex = mod(appliedYear - 4, 60)
 ```
 
-The offset is based on 1984 being `갑자`.
+The offset is based on 1984 being gapja.
 
 ## Month Pillar Boundary
 
@@ -42,20 +47,20 @@ The month pillar uses 12 solar-term boundaries, not Gregorian months and not lun
 
 The boundary datetime is exact. Date-only solar-term data is insufficient: if a solar term occurs at 17:00, births before 17:00 remain in the previous month pillar and births at or after 17:00 use the new month pillar.
 
-| Month order | Boundary | Branch |
+| Month order | Boundary key | Branch order |
 | --- | --- | --- |
-| 0 | 입춘 | 인 |
-| 1 | 경칩 | 묘 |
-| 2 | 청명 | 진 |
-| 3 | 입하 | 사 |
-| 4 | 망종 | 오 |
-| 5 | 소서 | 미 |
-| 6 | 입추 | 신 |
-| 7 | 백로 | 유 |
-| 8 | 한로 | 술 |
-| 9 | 입동 | 해 |
-| 10 | 대설 | 자 |
-| 11 | 소한 | 축 |
+| 0 | lichun | yin |
+| 1 | gyeongchip | mao |
+| 2 | cheongmyeong | chen |
+| 3 | ipha | si |
+| 4 | mangjong | wu |
+| 5 | soseo | wei |
+| 6 | ipchu | shen |
+| 7 | baengno | you |
+| 8 | hanro | xu |
+| 9 | ipdong | hai |
+| 10 | daeseol | zi |
+| 11 | sohan | chou |
 
 Month stem uses the year stem index:
 
@@ -68,7 +73,7 @@ monthStemIndex = (firstMonthStemIndex + monthOrder) % 10
 
 The day pillar uses Gregorian Julian Day Number for the local calculation date.
 
-For the KASI fixture, `2015-09-22` has `solJd = 2457288` and day ganji `신축`.
+For the KASI fixture, `2015-09-22` has `solJd = 2457288`.
 
 ```ts
 dayGanjiIndex = mod(julianDay + 49, 60)
@@ -78,20 +83,20 @@ dayGanjiIndex = mod(julianDay + 49, 60)
 
 Hour branch windows:
 
-| Time | Branch |
+| Time | Branch order |
 | --- | --- |
-| 23:00-00:59 | 자 |
-| 01:00-02:59 | 축 |
-| 03:00-04:59 | 인 |
-| 05:00-06:59 | 묘 |
-| 07:00-08:59 | 진 |
-| 09:00-10:59 | 사 |
-| 11:00-12:59 | 오 |
-| 13:00-14:59 | 미 |
-| 15:00-16:59 | 신 |
-| 17:00-18:59 | 유 |
-| 19:00-20:59 | 술 |
-| 21:00-22:59 | 해 |
+| 23:00-00:59 | zi |
+| 01:00-02:59 | chou |
+| 03:00-04:59 | yin |
+| 05:00-06:59 | mao |
+| 07:00-08:59 | chen |
+| 09:00-10:59 | si |
+| 11:00-12:59 | wu |
+| 13:00-14:59 | wei |
+| 15:00-16:59 | shen |
+| 17:00-18:59 | you |
+| 19:00-20:59 | xu |
+| 21:00-22:59 | hai |
 
 ```ts
 hourBranchIndex = Math.floor((hour + 1) / 2) % 12
@@ -102,11 +107,11 @@ If `birthTimeUnknown` is true, the hour pillar is `null`.
 
 ## dayBoundaryPolicy
 
-v0.2.3 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.2.3 emits a warning and still calculates with `midnight`.
+v0.3.0 applies `midnight`. The input type accepts `early_zi` and `split_zi` for forward compatibility, but v0.3.0 emits a warning and still calculates with `midnight`.
 
 ## solarTimePolicy
 
-v0.2.3 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.2.3 emits a warning and still calculates with civil time.
+v0.3.0 applies `civil_time`. The input type accepts `mean_solar_time` and `true_solar_time` for forward compatibility, but v0.3.0 emits a warning and still calculates with civil time.
 
 ## dataVersion
 
@@ -114,18 +119,20 @@ Every result includes `metadata.engineVersion`, `metadata.policyVersion`, and `m
 
 The default value combines the calendar provider and solar-term provider versions:
 
-`calendar:calendar-jdn-gregorian-0.1.0;solarTerms:solar-terms-v0.2.2`
+`calendar:calendar-jdn-korean-lunar-0.3.0;solarTerms:solar-terms-v0.2.2`
 
-The solar-term dataset is table-driven in v0.2.3 and supports 1950 through 2050. Unsupported years fail with `SOLAR_TERM_DATA_MISSING`.
+The solar-term dataset is table-driven and supports 1950 through 2050. Unsupported years fail with `SOLAR_TERM_DATA_MISSING`.
 
 ## Known Limitations
 
-- Default lunar conversion is unavailable and fails with `LUNAR_CONVERSION_UNAVAILABLE`.
+- Default lunar conversion is limited to the Korean lunar provider range documented above.
 - Default solar-term coverage is limited to rows in `data/solar-terms/solar-terms.v0.2.2.json`.
-- Mean solar time and true solar time are not applied in v0.2.3.
-- `early_zi` and `split_zi` day boundary policies are accepted but not applied in v0.2.3.
-- The v0.2.2 dataset is `cross-checked`, not production-certified.
+- Mean solar time and true solar time are not applied in v0.3.0.
+- `early_zi` and `split_zi` day boundary policies are accepted but not applied in v0.3.0.
+- The v0.2.2 solar-term dataset is `cross-checked`, not production-certified.
 
-## Solar-Term Data Source
+## Data Sources
 
-The checked-in v0.2.2 rows are generated with `astronomy-engine` `SearchSunLongitude`, which searches for the apparent Sun ecliptic longitude boundary. The generated 2014-2026 overlap is checked against the v0.2.1 public UTC table import within 90 seconds, and v0.2.3 adds a limited Chinese Calendar Online 2025-2028 comparison fixture. Runtime code consumes only the generated internal dataset and does not call live astronomy APIs.
+The checked-in v0.2.2 solar-term rows are generated with `astronomy-engine` `SearchSunLongitude`, which searches for the apparent Sun ecliptic longitude boundary. The generated 2014-2026 overlap is checked against the v0.2.1 public UTC table import within 90 seconds, and v0.2.3 adds a limited Chinese Calendar Online 2025-2028 comparison fixture. Runtime code consumes only the generated internal dataset and does not call live astronomy APIs.
+
+The default lunar conversion provider is `korean-lunar-calendar@0.4.0`. It is used locally and offline at runtime; `calculateSaju` does not call live public calendar APIs.

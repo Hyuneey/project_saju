@@ -2,7 +2,7 @@ import { Temporal } from "@js-temporal/polyfill";
 import { z } from "zod";
 import { DEFAULT_TIMEZONE } from "./constants";
 import { ManseError } from "./errors";
-import type { CalculateSajuInput, NormalizedCalculateSajuInput } from "./types";
+import type { CalculateSajuInput, NormalizedCalculateSajuInput, PlainDateLike } from "./types";
 
 const optionsSchema = z.object({
   yearBoundary: z.literal("lichun").optional(),
@@ -33,7 +33,11 @@ export function normalizeInput(input: CalculateSajuInput): NormalizedCalculateSa
   const birthTime = raw.birthTime === "" ? undefined : raw.birthTime;
   const timezone = raw.timezone || DEFAULT_TIMEZONE;
 
-  parseBirthDate(raw.birthDate);
+  if (raw.calendarType === "solar") {
+    parseBirthDate(raw.birthDate);
+  } else {
+    parseLunarBirthDate(raw.birthDate);
+  }
   assertIanaTimezone(timezone);
 
   if (!raw.birthTimeUnknown && !birthTime) {
@@ -77,6 +81,20 @@ export function parseBirthDate(value: string): Temporal.PlainDate {
   }
 }
 
+export function parseLunarBirthDate(value: string): PlainDateLike {
+  const date = parseDateParts(value);
+
+  if (date.month < 1 || date.month > 12) {
+    throw new ManseError("INVALID_DATE", "lunar birthDate month must be between 1 and 12.", { birthDate: value });
+  }
+
+  if (date.day < 1 || date.day > 30) {
+    throw new ManseError("INVALID_DATE", "lunar birthDate day must be between 1 and 30.", { birthDate: value });
+  }
+
+  return date;
+}
+
 export function parseBirthTime(value: string): Temporal.PlainTime {
   if (!/^\d{2}:\d{2}(:\d{2})?$/.test(value)) {
     throw new ManseError("INVALID_TIME", "birthTime must use HH:mm or HH:mm:ss format.", { birthTime: value });
@@ -87,6 +105,19 @@ export function parseBirthTime(value: string): Temporal.PlainTime {
   } catch (error) {
     throw new ManseError("INVALID_TIME", "birthTime is not valid civil time.", { birthTime: value, error });
   }
+}
+
+function parseDateParts(value: string): PlainDateLike {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) {
+    throw new ManseError("INVALID_DATE", "birthDate must use YYYY-MM-DD format.", { birthDate: value });
+  }
+
+  return {
+    year: Number(match[1]),
+    month: Number(match[2]),
+    day: Number(match[3])
+  };
 }
 
 export function assertIanaTimezone(timezone: string): void {

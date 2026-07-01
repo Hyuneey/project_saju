@@ -1,3 +1,4 @@
+import KoreanLunarCalendar from "korean-lunar-calendar";
 import { MONTH_BOUNDARIES } from "./constants";
 import { ManseError } from "./errors";
 import { julianDayNumber } from "./julian";
@@ -26,35 +27,58 @@ const CHRONOLOGICAL_TERM_KEYS = [
   "daeseol"
 ] as const;
 
+const KOREAN_LUNAR_PROVIDER = "KoreanLunarCalendarProvider";
+const KOREAN_LUNAR_SOURCE = "korean-lunar-calendar@0.4.0";
+const SUPPORTED_SOLAR_RANGE = {
+  from: { year: 1000, month: 2, day: 13 },
+  to: { year: 2050, month: 12, day: 31 }
+} as const;
+const SUPPORTED_LUNAR_RANGE = {
+  from: { year: 1000, month: 1, day: 1 },
+  to: { year: 2050, month: 11, day: 18 }
+} as const;
+
 export class TableCalendarDataProvider implements CalendarDataProvider {
-  readonly dataVersion = "calendar-jdn-gregorian-0.1.0";
+  readonly dataVersion = "calendar-jdn-korean-lunar-0.3.0";
 
   getJulianDay(date: PlainDateLike): number {
     return julianDayNumber(date);
   }
 
   solarToLunar(date: PlainDateLike): LunarDate {
-    throw new ManseError(
-      "LUNAR_CONVERSION_UNAVAILABLE",
-      "Solar-to-lunar conversion data is not available in the default table provider.",
-      {
-        provider: "TableCalendarDataProvider",
-        requestedSolarDate: date,
-        supportedInDefaultProvider: false
-      }
-    );
+    assertDateInRange(date, SUPPORTED_SOLAR_RANGE, "solar");
+    const calendar = new KoreanLunarCalendar();
+
+    if (!calendar.setSolarDate(date.year, date.month, date.day)) {
+      throw new ManseError("INVALID_DATE", "Solar date cannot be converted to a Korean lunar date.", {
+        provider: KOREAN_LUNAR_PROVIDER,
+        source: KOREAN_LUNAR_SOURCE,
+        requestedSolarDate: date
+      });
+    }
+
+    const lunar = calendar.getLunarCalendar();
+    return {
+      year: lunar.year,
+      month: lunar.month,
+      day: lunar.day,
+      leapMonth: lunar.intercalation ?? false
+    };
   }
 
   lunarToSolar(date: LunarDate): PlainDateLike {
-    throw new ManseError(
-      "LUNAR_CONVERSION_UNAVAILABLE",
-      "Lunar-to-solar conversion data is not available in the default table provider.",
-      {
-        provider: "TableCalendarDataProvider",
-        requestedLunarDate: date,
-        supportedInDefaultProvider: false
-      }
-    );
+    assertDateInRange(date, SUPPORTED_LUNAR_RANGE, "lunar");
+    const calendar = new KoreanLunarCalendar();
+
+    if (!calendar.setLunarDate(date.year, date.month, date.day, date.leapMonth)) {
+      throw new ManseError("INVALID_DATE", "Korean lunar date cannot be converted to a solar date.", {
+        provider: KOREAN_LUNAR_PROVIDER,
+        source: KOREAN_LUNAR_SOURCE,
+        requestedLunarDate: date
+      });
+    }
+
+    return calendar.getSolarCalendar();
   }
 }
 
@@ -225,4 +249,28 @@ function isSolarTermDataset(source: Record<string, SolarTerm[]> | SolarTermDatas
 
 function utcInstantToPlainDateTime(value: string): string {
   return value.endsWith("Z") ? value.slice(0, -1) : value;
+}
+
+function assertDateInRange(
+  date: PlainDateLike,
+  range: { from: PlainDateLike; to: PlainDateLike },
+  calendarType: "solar" | "lunar"
+): void {
+  if (compareDate(date, range.from) < 0 || compareDate(date, range.to) > 0) {
+    throw new ManseError("OUT_OF_SUPPORTED_RANGE", `${calendarType} date is outside the supported Korean lunar conversion range.`, {
+      provider: KOREAN_LUNAR_PROVIDER,
+      source: KOREAN_LUNAR_SOURCE,
+      calendarType,
+      requestedDate: date,
+      supportedRange: range
+    });
+  }
+}
+
+function compareDate(left: PlainDateLike, right: PlainDateLike): number {
+  return (
+    left.year - right.year ||
+    left.month - right.month ||
+    left.day - right.day
+  );
 }

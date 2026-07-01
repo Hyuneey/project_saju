@@ -3,7 +3,7 @@ import { ENGINE_VERSION, MONTH_BOUNDARIES, POLICY_VERSION } from "./constants";
 import { ManseError } from "./errors";
 import { calculateHourPillar, ganjiIndexToResult, mod, stemBranchToGanji } from "./ganji";
 import { defaultCalendarDataProvider, defaultSolarTermProvider, requireSolarTerm } from "./providers";
-import { normalizeInput, parseBirthDate, parseBirthTime } from "./validation";
+import { normalizeInput, parseBirthDate, parseBirthTime, parseLunarBirthDate } from "./validation";
 import type {
   CalculateSajuInput,
   CalculateSajuResult,
@@ -75,14 +75,17 @@ export async function calculateSaju(input: CalculateSajuInput, providers: Provid
 async function normalizeDateTime(input: CalculateSajuInput, calendarProvider: CalendarDataProvider): Promise<NormalizedDateTime> {
   const normalizedInput = normalizeInput(input);
   const warnings: CalculationWarning[] = [];
-  let solarDate = parseBirthDate(normalizedInput.birthDate);
+  let solarDate: Temporal.PlainDate;
 
   if (normalizedInput.calendarType === "lunar") {
+    const lunarDate = parseLunarBirthDate(normalizedInput.birthDate);
     const converted = await calendarProvider.lunarToSolar({
-      ...plainDateToLike(solarDate),
+      ...lunarDate,
       leapMonth: normalizedInput.lunarLeapMonth ?? false
     });
     solarDate = Temporal.PlainDate.from(converted);
+  } else {
+    solarDate = parseBirthDate(normalizedInput.birthDate);
   }
 
   if (normalizedInput.birthTimeUnknown) {

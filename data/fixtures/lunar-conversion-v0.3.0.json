@@ -1,0 +1,76 @@
+{
+  "name": "Korean lunar conversion provider fixture",
+  "dataVersion": "calendar-jdn-korean-lunar-0.3.0",
+  "provider": {
+    "name": "KoreanLunarCalendarProvider",
+    "package": "korean-lunar-calendar",
+    "version": "0.4.0",
+    "runtimeNetwork": false
+  },
+  "sources": [
+    {
+      "name": "Korea Astronomy and Space Science Institute lunar/solar conversion page",
+      "url": "https://astro.kasi.re.kr/life/pageView/8",
+      "notes": "Official reference page documents Korean lunar/solar conversion UI, leap-month option, and solar conversion coverage through 2050-12-31."
+    },
+    {
+      "name": "korean-lunar-calendar README",
+      "url": "https://github.com/usingsky/korean_lunar_calendar_js",
+      "notes": "Offline Korean lunar/solar conversion package that states it follows the KARI/KASI Korean lunar calendar standard."
+    }
+  ],
+  "supportedRange": {
+    "solarToLunar": {
+      "from": "1000-02-13",
+      "to": "2050-12-31"
+    },
+    "lunarToSolar": {
+      "from": "1000-01-01",
+      "to": "2050-11-18"
+    }
+  },
+  "examples": [
+    {
+      "name": "KASI v0.1 solar fixture back-conversion",
+      "lunar": {
+        "year": 2015,
+        "month": 8,
+        "day": 10,
+        "leapMonth": false
+      },
+      "solar": {
+        "year": 2015,
+        "month": 9,
+        "day": 22
+      }
+    },
+    {
+      "name": "README leap lunar example",
+      "lunar": {
+        "year": 2017,
+        "month": 5,
+        "day": 1,
+        "leapMonth": true
+      },
+      "solar": {
+        "year": 2017,
+        "month": 6,
+        "day": 24
+      }
+    },
+    {
+      "name": "README historical example",
+      "lunar": {
+        "year": 1956,
+        "month": 1,
+        "day": 21,
+        "leapMonth": false
+      },
+      "solar": {
+        "year": 1956,
+        "month": 3,
+        "day": 3
+      }
+    }
+  ]
+}

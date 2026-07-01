@@ -1,6 +1,6 @@
 {
   "name": "@project-saju/manse-engine",
-  "version": "0.2.3",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "main": "./src/index.ts",
@@ -14,6 +14,7 @@
   },
   "dependencies": {
     "@js-temporal/polyfill": "^0.5.1",
+    "korean-lunar-calendar": "^0.4.0",
     "zod": "^3.25.0"
   }
 }

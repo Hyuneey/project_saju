@@ -1,17 +1,17 @@
-# Manse Engine v0.2.3 Project Brief
+# Manse Engine v0.3.0 Project Brief
 
 ## Goal
 
-Manse Engine v0.2.3 calculates Korean saju four pillars from birth date/time input with deterministic, testable code. It is not an interpretation or fortune-telling layer.
+Manse Engine v0.3.0 calculates Korean saju four pillars from solar or Korean lunar birth-date input with deterministic, testable code. It is not an interpretation or fortune-telling layer.
 
-v0.2.3 independently reviews the v0.2.2 solar-term dataset and keeps it at `cross-checked`. The calculation policy remains `manse-policy-v0.1`; this release adds source comparison workflow and certification documentation without changing the pillar formulas or dataset range.
+v0.3.0 adds default Korean lunar-to-solar conversion before pillar calculation. The calculation policy remains `manse-policy-v0.1`; the pillar formulas and solar-term dataset are unchanged from v0.2.3.
 
 The calculation logic lives in `packages/manse-engine`. The Next.js app in `apps/web` calls the engine through `POST /api/saju/calculate` and contains no pillar calculation logic.
 
 ## Scope
 
 - Solar input normalization with IANA timezones.
-- Lunar input validation and loud failure when conversion data is unavailable.
+- Korean lunar input conversion with explicit `lunarLeapMonth`.
 - Year pillar by lichun boundary.
 - Month pillar by 12 solar-term boundaries.
 - Versioned UTC solar-term boundary datetimes, not date-only solar-term labels.
@@ -26,7 +26,7 @@ The calculation logic lives in `packages/manse-engine`. The Next.js app in `apps
 
 - LLM or AI calculation.
 - Saju interpretation text.
-- Production-grade lunar conversion tables.
+- Lunar conversion outside the default provider range.
 - Solar-term data outside the certified 1950-2050 range.
 - Mean or true solar-time adjustment.
 
@@ -35,9 +35,11 @@ The calculation logic lives in `packages/manse-engine`. The Next.js app in `apps
 - `apps/web`: minimal Next.js debug UI and API route.
 - `packages/manse-engine`: deterministic engine, providers, errors, tests.
 - `data/solar-terms`: canonical solar-term schema, README, and versioned datasets.
-- `data/fixtures`: golden calculation fixtures.
+- `data/fixtures`: golden calculation and provider fixtures.
 - `docs`: policy, API, and test documentation.
 
 ## Data
 
-The default v0.2.3 engine still uses `data/solar-terms/solar-terms.v0.2.2.json`. It includes exact UTC boundary datetimes for every engine-required major solar term from 1950 through 2050, plus the 1949 대설 carryover row needed for early January 1950. v0.2.3 does not promote the dataset to `production-certified`; see `docs/SOLAR_TERM_CERTIFICATION.md`.
+The default v0.3.0 engine still uses `data/solar-terms/solar-terms.v0.2.2.json`. It includes exact UTC boundary datetimes for every engine-required major solar term from 1950 through 2050, plus the 1949 daeseol carryover row needed for early January 1950. The solar-term dataset remains `cross-checked`; see `docs/SOLAR_TERM_CERTIFICATION.md`.
+
+The default calendar provider uses `korean-lunar-calendar@0.4.0` for offline Korean lunar/solar conversion. Runtime calculation consumes the installed local package and internal solar-term data only; it does not call public calendar APIs inside `calculateSaju`.

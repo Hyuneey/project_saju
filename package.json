@@ -1,7 +1,7 @@
 {
   "name": "project-saju",
   "private": true,
-  "version": "0.2.3",
+  "version": "0.3.0",
   "packageManager": "pnpm@10.14.0",
   "scripts": {
     "build:solar-terms": "node scripts/solar-terms.mjs generate",
